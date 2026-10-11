@@ -1,5 +1,5 @@
-import GroupModal from './components/GroupModal'
-import { useEffect, useMemo, useRef, useState } from 'react'
+const GroupModal = lazy(() => import('./components/GroupModal'))
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Bell,
@@ -18,13 +18,10 @@ import {
   Loader2,
   LockKeyhole,
   Megaphone,
-  Menu,
   MessageCircle,
   MessageSquare,
   Moon,
   MoreHorizontal,
-  PanelLeftClose,
-  PanelRightOpen,
   Plus,
   Search,
   Send,
@@ -59,7 +56,7 @@ import { useNavigate } from 'react-router-dom'
 import { forumApi } from '../../services/forumApi'
 import { useAuth } from '../../contexts/AuthContext.jsx'
 import useSyncedDarkMode from '../../hooks/common/useSyncedDarkMode'
-import DiscordGroupsLayout from './groups/DiscordGroupsLayout'
+const DiscordGroupsLayout = lazy(() => import('./groups/DiscordGroupsLayout'))
 import { getUserAvatar } from '../../utils/userAvatar'
 
 const SECTIONS = {
@@ -683,7 +680,7 @@ const getInviteExpiryMs = (value = 'unlimited') => {
   return 0
 }
 
-const showGroupCreatedPopup = ({ groupCode = '', inviteCode = '', onEnter = () => {} }) => {
+const showGroupCreatedPopup = ({ groupCode = '', inviteCode = '', onEnter = () => { } }) => {
   toast.dismiss('forum-group-created')
   const copyText = async (value, label) => {
     try {
@@ -708,7 +705,7 @@ const showGroupCreatedPopup = ({ groupCode = '', inviteCode = '', onEnter = () =
   ), { id: 'forum-group-created', duration: Infinity })
 }
 
-function Forum({ onChannelViewChange = () => {} }) {
+function Forum({ onChannelViewChange = () => { } }) {
   const navigate = useNavigate()
   const { user } = useAuth()
   const syncedDark = useSyncedDarkMode()
@@ -751,7 +748,7 @@ function Forum({ onChannelViewChange = () => {} }) {
   const [selectedPost, setSelectedPost] = useState(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [groupChannelOpen, setGroupChannelOpen] = useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarExpanded, setSidebarExpanded] = useState(false)
   const [confirmModal, setConfirmModal] = useState(null)
   const [shareModal, setShareModal] = useState(null)
   const [createdGroupPopup, setCreatedGroupPopup] = useState(null)
@@ -769,7 +766,10 @@ function Forum({ onChannelViewChange = () => {} }) {
   const [reportModal, setReportModal] = useState(null)
   const [highlightedCommentId, setHighlightedCommentId] = useState('')
   const [selectedGroupChat, setSelectedGroupChat] = useState(null)
-  const [openCreatedGroupId, setOpenCreatedGroupId] = useState('')
+  const [openCreatedGroupId, setOpenCreatedGroupId] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    return new URLSearchParams(window.location.search).get('group') || ''
+  })
   const rotatedInviteGroupIdsRef = useRef(new Set())
 
   const roleKey = getRoleKey(profile?.role || profile?.userRole || profile?.type)
@@ -854,8 +854,8 @@ function Forum({ onChannelViewChange = () => {} }) {
       role: getRoleKey(savedProfile.role || savedProfile.userRole || targetUser.role),
       className: savedProfile.className || savedProfile.class || savedProfile.lop || '',
       avatarUrl: Object.keys(savedProfile || {}).length
-      ? getUserAvatar(savedProfile)
-      : (targetUser.avatarUrl || ''),
+        ? getUserAvatar(savedProfile)
+        : (targetUser.avatarUrl || ''),
       initials: getInitials(savedProfile.fullName || savedProfile.displayName || savedProfile.name || targetUser.name),
     })
   }
@@ -1006,14 +1006,14 @@ function Forum({ onChannelViewChange = () => {} }) {
         if (roleKey === 'student' && post.groupId && !joinedGroupIds.has(post.groupId)) return false
       }
 
-if (activeSection === SECTIONS.MY_POSTS || (activeSection === SECTIONS.ACCOUNT && accountTab === 'my-posts')) {
-  if (post.authorId !== currentUser?.uid) return false
+      if (activeSection === SECTIONS.MY_POSTS || (activeSection === SECTIONS.ACCOUNT && accountTab === 'my-posts')) {
+        if (post.authorId !== currentUser?.uid) return false
 
-  const status = post.status || 'approved'
+        const status = post.status || 'approved'
 
-  if (myPostStatusFilter === 'approved' && status !== 'approved') return false
-  if (myPostStatusFilter === 'rejected' && status !== 'rejected') return false
-}
+        if (myPostStatusFilter === 'approved' && status !== 'approved') return false
+        if (myPostStatusFilter === 'rejected' && status !== 'rejected') return false
+      }
       if ((activeSection === SECTIONS.SAVED || (activeSection === SECTIONS.ACCOUNT && accountTab === 'saved')) && !(post.savedBy || []).includes(currentUser?.uid)) return false
       if (activeSection === SECTIONS.ADMIN_REVIEW) {
         if (roleKey !== 'admin_dev') return false
@@ -1025,12 +1025,12 @@ if (activeSection === SECTIONS.MY_POSTS || (activeSection === SECTIONS.ACCOUNT &
       if (activeSection === SECTIONS.HALL && (post.status || 'approved') !== 'approved') return false
       if (![SECTIONS.MY_POSTS, SECTIONS.ACCOUNT, SECTIONS.ADMIN_REVIEW].includes(activeSection) && (post.status || 'approved') !== 'approved') return false
 
-if (filter === 'hot') {
-  const isAdminPost = ['admin', 'admin_dev'].includes(post.authorRole)
-  const hasEnoughLikes = Number(post.likesCount || 0) > 10
+      if (filter === 'hot') {
+        const isAdminPost = ['admin', 'admin_dev'].includes(post.authorRole)
+        const hasEnoughLikes = Number(post.likesCount || 0) > 10
 
-  if (!isAdminPost && !hasEnoughLikes) return false
-}
+        if (!isAdminPost && !hasEnoughLikes) return false
+      }
       if (!['all', 'hot'].includes(filter) && post.type !== filter) return false
 
       if (!keyword) return true
@@ -1048,18 +1048,18 @@ if (filter === 'hot') {
       }
       return timestampToMs(b.createdAt) - timestampToMs(a.createdAt)
     })
-}, [posts, savedPosts, activeSection, accountTab, currentUser?.uid, filter, search, sortBy, joinedGroupIds, roleKey, userClass, myPostStatusFilter, adminReviewMode])
-const filteredNotifications = useMemo(() => {
-  return notifications.filter((item) => {
-    if (notificationFilter === 'all') return true
-    if (notificationFilter === 'hall') return (item.scope || 'hall') === 'hall'
-    if (notificationFilter === 'group') return item.scope === 'group'
-    if (notificationFilter === 'mine') {
-      return ['moderation-approved', 'moderation-rejected', 'comment', 'like', 'reaction', 'event-started', 'admin-event-started', 'event-created'].includes(item.type)
-    }
-    return true
-  })
-}, [notifications, notificationFilter])
+  }, [posts, savedPosts, activeSection, accountTab, currentUser?.uid, filter, search, sortBy, joinedGroupIds, roleKey, userClass, myPostStatusFilter, adminReviewMode])
+  const filteredNotifications = useMemo(() => {
+    return notifications.filter((item) => {
+      if (notificationFilter === 'all') return true
+      if (notificationFilter === 'hall') return (item.scope || 'hall') === 'hall'
+      if (notificationFilter === 'group') return item.scope === 'group'
+      if (notificationFilter === 'mine') {
+        return ['moderation-approved', 'moderation-rejected', 'comment', 'like', 'reaction', 'event-started', 'admin-event-started', 'event-created'].includes(item.type)
+      }
+      return true
+    })
+  }, [notifications, notificationFilter])
 
   const unreadNotificationsCount = useMemo(() => {
     return notifications.filter((item) => !item.read).length
@@ -1703,222 +1703,224 @@ const filteredNotifications = useMemo(() => {
 
   return (
     <div className={`${dark ? 'dark' : ''} min-h-full [&_button]:cursor-pointer [&_select]:cursor-pointer [&_label]:cursor-pointer`}>
-<main className="min-h-full bg-slate-50 text-slate-950 transition dark:bg-[#020617] dark:text-white">
-    <div className="relative flex min-h-full">
-              <Sidebar activeSection={activeSection} roleKey={roleKey} unreadNotificationsCount={unreadNotificationsCount} pendingReviewCount={pendingReviewCount} collapsed={activeSection === SECTIONS.GROUPS ? true : sidebarCollapsed} onToggleCollapsed={() => setSidebarCollapsed((value) => !value)} onChange={(section) => { changeForumSection(section); setFilter('all'); setMobileMenuOpen(false) }} dark={dark} onToggleDark={() => setManualDark((value) => !(value ?? syncedDark))} mobileOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+      <main className="min-h-full bg-slate-50 text-slate-950 transition dark:bg-[#020617] dark:text-white">
+        <div className="relative flex min-h-full">
+          <Sidebar activeSection={activeSection} roleKey={roleKey} unreadNotificationsCount={unreadNotificationsCount} pendingReviewCount={pendingReviewCount} onExpandedChange={setSidebarExpanded} onChange={(section) => { changeForumSection(section); setFilter('all'); setMobileMenuOpen(false) }} dark={dark} onToggleDark={() => setManualDark((value) => !(value ?? syncedDark))} mobileOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
 
-        <div className={`min-h-full min-w-0 flex-1 transition-[margin] duration-300 ${activeSection === SECTIONS.GROUPS || sidebarCollapsed ? 'lg:ml-24' : 'lg:ml-72'}`}>
-        {activeSection === SECTIONS.GROUPS ? (
-<DiscordGroupsLayout
-  groups={groups}
-  currentUser={currentUser}
-  initialActiveGroupId={openCreatedGroupId}
-  displayName={displayName}
-  initials={initials}
-  avatarUrl={avatarUrl}
-  roleKey={roleKey}
-  userClass={userClass}
-  onJoin={toggleJoinGroup}
-  onDelete={deleteGroup}
-  onCreate={openGroupCreator}
-  groupReports={groupReports}
-  onReportGroup={submitGroupReport}
-  onAdminJoinReportedGroup={adminJoinReportedGroup}
-  onChannelViewChange={(open) => {
-    setGroupChannelOpen(open)
-    onChannelViewChange(open)
+          <div className={`min-h-full min-w-0 flex-1 transition-[margin] duration-300 ${sidebarExpanded ? 'lg:ml-72' : 'lg:ml-24'}`}>
+            {activeSection === SECTIONS.GROUPS ? (
+              <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center text-sm text-slate-500">Đang tải nhóm học...</div>}>
+                <DiscordGroupsLayout
+                groups={groups}
+                currentUser={currentUser}
+                initialActiveGroupId={openCreatedGroupId}
+                displayName={displayName}
+                initials={initials}
+                avatarUrl={avatarUrl}
+                roleKey={roleKey}
+                userClass={userClass}
+                onJoin={toggleJoinGroup}
+                onDelete={deleteGroup}
+                onCreate={openGroupCreator}
+                groupReports={groupReports}
+                onReportGroup={submitGroupReport}
+                onAdminJoinReportedGroup={adminJoinReportedGroup}
+                onChannelViewChange={(open) => {
+                  setGroupChannelOpen(open)
+                  onChannelViewChange(open)
 
-    if (typeof window !== 'undefined') {
-      const mobileChannelOpen = Boolean(
-        open && window.matchMedia('(max-width: 1023px)').matches,
-      )
+                  if (typeof window !== 'undefined') {
+                    const mobileChannelOpen = Boolean(
+                      open && window.matchMedia('(max-width: 1023px)').matches,
+                    )
 
-      window.dispatchEvent(
-        new CustomEvent('zuny:forum-channel-view', {
-          detail: { open: mobileChannelOpen },
-        }),
-      )
-    }
-  }}
-/>
-              ) : (
-<section className="min-h-full min-w-0 flex-1 overflow-visible pb-24 lg:pb-8">            
+                    window.dispatchEvent(
+                      new CustomEvent('zuny:forum-channel-view', {
+                        detail: { open: mobileChannelOpen },
+                      }),
+                    )
+                  }
+                }}
+                />
+              </Suspense>
+            ) : (
+              <section className="min-h-full min-w-0 flex-1 overflow-visible pb-24 lg:pb-8">
 
-            <div className={`mx-auto grid w-full max-w-7xl gap-4 px-3 py-3 sm:px-4 sm:py-4 lg:px-6 ${activeSection === SECTIONS.HALL ? "xl:grid-cols-[minmax(0,1fr)_300px]" : "grid-cols-1"}`}>
-              <div className="min-w-0">
-                {activeSection === SECTIONS.HALL && <HallHero stats={stats} onCompose={openComposer} onExploreGroups={() => changeForumSection(SECTIONS.GROUPS)} />}
-                {activeSection === SECTIONS.GROUPS && null}
-                {activeSection === SECTIONS.ACCOUNT && (
-                  <AccountHero
-                    displayName={displayName}
-                    avatarUrl={avatarUrl}
-                    initials={initials}
-                    accountTab={accountTab}
-                    onChange={setAccountTab}
-                    myPostsCount={posts.filter((post) => post.authorId === currentUser?.uid).length}
-                    savedCount={savedPosts.length}
-                    unreadCount={unreadNotificationsCount}
-                  />
-                )}
-                {activeSection === SECTIONS.ACCOUNT && accountTab === 'my-posts' && (
-                  <StatusFilterBar
-                    value={myPostStatusFilter}
-                    onChange={setMyPostStatusFilter}
-                    options={[
-                      { value: 'all', label: 'Tất cả' },
-                      { value: 'approved', label: 'Bài đăng thành công' },
-                      { value: 'rejected', label: 'Bài đăng thất bại' },
-                    ]}
-                  />
-                )}
-                {activeSection === SECTIONS.ADMIN_REVIEW && <SimpleHero icon="🛡️" title="Quản lý" subtitle="Quản trị bài viết, báo cáo và nhóm học trong cộng đồng ZUNY." />}
-
-                {activeSection === SECTIONS.HALL && <ComposerBar onOpen={openComposer} onAvatarClick={() => openUserProfile({ uid: currentUser?.uid, name: displayName, role: roleKey, avatarUrl })} initials={initials} avatarUrl={avatarUrl} name={displayName} />}
-
-                {activeSection === SECTIONS.ADMIN_REVIEW ? (
-                  <>
-                    <StatusFilterBar
-                      value={adminMainMode}
-                      onChange={setAdminMainMode}
-                      options={[
-                        { value: 'posts', label: 'Quản lý bài đăng' },
-                        { value: 'groups', label: 'Quản lý nhóm' },
-                        { value: 'personal', label: 'Quản lý cá nhân' },
-                      ]}
-                    />
-
-                    {adminMainMode === 'posts' ? (
-                      <>
-                        <StatusFilterBar
-                          value={adminReviewMode}
-                          onChange={setAdminReviewMode}
-                          options={[
-                            { value: 'pending', label: 'Duyệt bài đăng' },
-                            { value: 'reported', label: 'Bài đăng báo cáo' },
-                          ]}
-                        />
-                        <AdminReviewList
-                          mode={adminReviewMode}
-                          posts={filteredPosts}
-                          reports={reports.filter((report) => (report.status || 'open') === 'open')}
-                          onApprove={approvePost}
-                          onReject={rejectPost}
-                          onOpen={openPost}
-                          onResolveReport={resolveReport}
-                          onDeleteReportedPost={async (report) => {
-                            const targetPost = posts.find((item) => item.id === report.postId)
-                            if (targetPost) {
-                              await runDeletePost(targetPost, `Bài viết bị báo cáo: ${report.reason}${report.detail ? ` - ${report.detail}` : ''}`)
-                              await resolveReport(report)
-                            } else {
-                              await resolveReport(report)
-                            }
-                          }}
-                        />
-                      </>
-                    ) : adminMainMode === 'groups' ? (
-                      <>
-                        <StatusFilterBar
-                          value={groupAdminMode}
-                          onChange={setGroupAdminMode}
-                          options={[
-                            { value: 'stats', label: 'Thống kê nhóm' },
-                            { value: 'reports', label: 'Báo cáo nhóm' },
-                          ]}
-                        />
-                        <GroupAdminPanel
-                          mode={groupAdminMode}
-                          groups={groups}
-                          reports={groupReports.filter((report) => (report.status || 'open') === 'open')}
-                          onJoinReportedGroup={adminJoinReportedGroup}
-                          onDeleteGroup={(group) => deleteGroup(group)}
-                          onWarnOwner={warnGroupOwner}
-                          onResolveGroupReport={markGroupReportResolved}
-                        />
-                      </>
-                    ) : (
-                      <PersonalAdminPanel
-                        users={Object.values(userProfiles)}
-                        currentUserId={currentUser?.uid}
-                        search={personalAdminSearch}
-                        onSearchChange={setPersonalAdminSearch}
-                        onToggleRestriction={updateUserForumRestriction}
+                <div className={`mx-auto grid w-full max-w-7xl gap-4 px-3 py-3 sm:px-4 sm:py-4 lg:px-6 ${activeSection === SECTIONS.HALL ? "xl:grid-cols-[minmax(0,1fr)_300px]" : "grid-cols-1"}`}>
+                  <div className="min-w-0">
+                    {activeSection === SECTIONS.HALL && <HallHero stats={stats} onCompose={openComposer} onExploreGroups={() => changeForumSection(SECTIONS.GROUPS)} />}
+                    {activeSection === SECTIONS.GROUPS && null}
+                    {activeSection === SECTIONS.ACCOUNT && (
+                      <AccountHero
+                        displayName={displayName}
+                        avatarUrl={avatarUrl}
+                        initials={initials}
+                        accountTab={accountTab}
+                        onChange={setAccountTab}
+                        myPostsCount={posts.filter((post) => post.authorId === currentUser?.uid).length}
+                        savedCount={savedPosts.length}
+                        unreadCount={unreadNotificationsCount}
                       />
                     )}
-                  </>
-                ) : activeSection === SECTIONS.NOTIFICATIONS || (activeSection === SECTIONS.ACCOUNT && accountTab === 'notifications') ? (
-                  <>
-                    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                    {activeSection === SECTIONS.ACCOUNT && accountTab === 'my-posts' && (
                       <StatusFilterBar
-                        value={notificationFilter}
-                        onChange={setNotificationFilter}
+                        value={myPostStatusFilter}
+                        onChange={setMyPostStatusFilter}
                         options={[
                           { value: 'all', label: 'Tất cả' },
-                          { value: 'hall', label: 'Cộng đồng ZUNY' },
-                          { value: 'group', label: 'Nhóm học' },
-                          { value: 'mine', label: 'Của tôi' },
+                          { value: 'approved', label: 'Bài đăng thành công' },
+                          { value: 'rejected', label: 'Bài đăng thất bại' },
                         ]}
                       />
+                    )}
+                    {activeSection === SECTIONS.ADMIN_REVIEW && <SimpleHero icon="🛡️" title="Quản lý" subtitle="Quản trị bài viết, báo cáo và nhóm học trong cộng đồng ZUNY." />}
 
-                      <div className="flex shrink-0 gap-2">
-                        <button
-                          type="button"
-                          onClick={markAllNotificationsRead}
-                          className="rounded-2xl bg-cyan-500 px-4 py-2 text-xs font-black text-white shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-600"
-                        >
-                          Đọc hết
-                        </button>
-                        <button
-                          type="button"
-                          onClick={confirmDeleteAllNotifications}
-                          className="rounded-2xl bg-rose-600 px-4 py-2 text-xs font-black text-white shadow-lg shadow-rose-500/20 transition hover:bg-rose-700"
-                        >
-                          Xóa hết
-                        </button>
-                      </div>
-                    </div>
+                    {activeSection === SECTIONS.HALL && <ComposerBar onOpen={openComposer} onAvatarClick={() => openUserProfile({ uid: currentUser?.uid, name: displayName, role: roleKey, avatarUrl })} initials={initials} avatarUrl={avatarUrl} name={displayName} />}
 
-                    <NotificationList notifications={filteredNotifications} onRead={openNotification} onDelete={requestDeleteNotification} />
-                  </>
-                ) : (
-                  <>
-                    <FilterBar filter={filter} setFilter={setFilter} sortBy={sortBy} setSortBy={setSortBy} search={search} setSearch={setSearch} />
-<PostList
-  loading={loadingPosts}
-  posts={filteredPosts}
-  currentUserId={currentUser?.uid}
-  roleKey={roleKey}
-  userProfiles={userProfiles}
-  onOpenUserProfile={openUserProfile}
-  likingPostIds={likingPostIds}
-  showStatusBadge={activeSection === SECTIONS.MY_POSTS || (activeSection === SECTIONS.ACCOUNT && accountTab === 'my-posts')}
-  onOpen={openPost}
-  onLike={toggleLike}
-  onReport={setReportModal}
-  onSave={toggleSave}
-  onDelete={deletePost}
-  onShare={openShareModal}
-  onVote={votePoll}
-  onEventInterest={toggleEventInterest}
-  onClear={() => { setSearch(''); setFilter('all') }}
-/>
-                  </>
-                )}
-              </div>
+                    {activeSection === SECTIONS.ADMIN_REVIEW ? (
+                      <>
+                        <StatusFilterBar
+                          value={adminMainMode}
+                          onChange={setAdminMainMode}
+                          options={[
+                            { value: 'posts', label: 'Quản lý bài đăng' },
+                            { value: 'groups', label: 'Quản lý nhóm' },
+                            { value: 'personal', label: 'Quản lý cá nhân' },
+                          ]}
+                        />
 
-              {activeSection === SECTIONS.HALL && (
-                <RightSidebar
-                  posts={posts.filter((post) => (post.status || 'approved') === 'approved')}
-                  groups={groups}
-                  profile={{ displayName, initials, roleKey, userClass }}
-                  currentUserId={currentUser?.uid}
-                  onOpenPost={openPost}
-                />
-              )}
-            </div>
-          </section>
-              )}
-        </div>
+                        {adminMainMode === 'posts' ? (
+                          <>
+                            <StatusFilterBar
+                              value={adminReviewMode}
+                              onChange={setAdminReviewMode}
+                              options={[
+                                { value: 'pending', label: 'Duyệt bài đăng' },
+                                { value: 'reported', label: 'Bài đăng báo cáo' },
+                              ]}
+                            />
+                            <AdminReviewList
+                              mode={adminReviewMode}
+                              posts={filteredPosts}
+                              reports={reports.filter((report) => (report.status || 'open') === 'open')}
+                              onApprove={approvePost}
+                              onReject={rejectPost}
+                              onOpen={openPost}
+                              onResolveReport={resolveReport}
+                              onDeleteReportedPost={async (report) => {
+                                const targetPost = posts.find((item) => item.id === report.postId)
+                                if (targetPost) {
+                                  await runDeletePost(targetPost, `Bài viết bị báo cáo: ${report.reason}${report.detail ? ` - ${report.detail}` : ''}`)
+                                  await resolveReport(report)
+                                } else {
+                                  await resolveReport(report)
+                                }
+                              }}
+                            />
+                          </>
+                        ) : adminMainMode === 'groups' ? (
+                          <>
+                            <StatusFilterBar
+                              value={groupAdminMode}
+                              onChange={setGroupAdminMode}
+                              options={[
+                                { value: 'stats', label: 'Thống kê nhóm' },
+                                { value: 'reports', label: 'Báo cáo nhóm' },
+                              ]}
+                            />
+                            <GroupAdminPanel
+                              mode={groupAdminMode}
+                              groups={groups}
+                              reports={groupReports.filter((report) => (report.status || 'open') === 'open')}
+                              onJoinReportedGroup={adminJoinReportedGroup}
+                              onDeleteGroup={(group) => deleteGroup(group)}
+                              onWarnOwner={warnGroupOwner}
+                              onResolveGroupReport={markGroupReportResolved}
+                            />
+                          </>
+                        ) : (
+                          <PersonalAdminPanel
+                            users={Object.values(userProfiles)}
+                            currentUserId={currentUser?.uid}
+                            search={personalAdminSearch}
+                            onSearchChange={setPersonalAdminSearch}
+                            onToggleRestriction={updateUserForumRestriction}
+                          />
+                        )}
+                      </>
+                    ) : activeSection === SECTIONS.NOTIFICATIONS || (activeSection === SECTIONS.ACCOUNT && accountTab === 'notifications') ? (
+                      <>
+                        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                          <StatusFilterBar
+                            value={notificationFilter}
+                            onChange={setNotificationFilter}
+                            options={[
+                              { value: 'all', label: 'Tất cả' },
+                              { value: 'hall', label: 'Cộng đồng ZUNY' },
+                              { value: 'group', label: 'Nhóm học' },
+                              { value: 'mine', label: 'Của tôi' },
+                            ]}
+                          />
+
+                          <div className="flex shrink-0 gap-2">
+                            <button
+                              type="button"
+                              onClick={markAllNotificationsRead}
+                              className="rounded-2xl bg-cyan-500 px-4 py-2 text-xs font-black text-white shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-600"
+                            >
+                              Đọc hết
+                            </button>
+                            <button
+                              type="button"
+                              onClick={confirmDeleteAllNotifications}
+                              className="rounded-2xl bg-rose-600 px-4 py-2 text-xs font-black text-white shadow-lg shadow-rose-500/20 transition hover:bg-rose-700"
+                            >
+                              Xóa hết
+                            </button>
+                          </div>
+                        </div>
+
+                        <NotificationList notifications={filteredNotifications} onRead={openNotification} onDelete={requestDeleteNotification} />
+                      </>
+                    ) : (
+                      <>
+                        <FilterBar filter={filter} setFilter={setFilter} sortBy={sortBy} setSortBy={setSortBy} search={search} setSearch={setSearch} />
+                        <PostList
+                          loading={loadingPosts}
+                          posts={filteredPosts}
+                          currentUserId={currentUser?.uid}
+                          roleKey={roleKey}
+                          userProfiles={userProfiles}
+                          onOpenUserProfile={openUserProfile}
+                          likingPostIds={likingPostIds}
+                          showStatusBadge={activeSection === SECTIONS.MY_POSTS || (activeSection === SECTIONS.ACCOUNT && accountTab === 'my-posts')}
+                          onOpen={openPost}
+                          onLike={toggleLike}
+                          onReport={setReportModal}
+                          onSave={toggleSave}
+                          onDelete={deletePost}
+                          onShare={openShareModal}
+                          onVote={votePoll}
+                          onEventInterest={toggleEventInterest}
+                          onClear={() => { setSearch(''); setFilter('all') }}
+                        />
+                      </>
+                    )}
+                  </div>
+
+                  {activeSection === SECTIONS.HALL && (
+                    <RightSidebar
+                      posts={posts.filter((post) => (post.status || 'approved') === 'approved')}
+                      groups={groups}
+                      profile={{ displayName, initials, roleKey, userClass }}
+                      currentUserId={currentUser?.uid}
+                      onOpenPost={openPost}
+                    />
+                  )}
+                </div>
+              </section>
+            )}
+          </div>
         </div>
 
         {!groupChannelOpen && (
@@ -1933,105 +1935,109 @@ const filteredNotifications = useMemo(() => {
         onOpenLeaderboard={(uid) => navigate(`/leaderboard?user=${encodeURIComponent(uid)}&highlight=1`)}
       />
       <PostModal open={composerOpen} onClose={() => setComposerOpen(false)} onSubmit={createPost} groups={groups} roleKey={roleKey} displayName={displayName} initials={initials} avatarUrl={avatarUrl} />
-      <GroupModal open={groupOpen} onClose={() => setGroupOpen(false)} onSubmit={createGroup} existingGroups={groups} />
+      {groupOpen ? (
+        <Suspense fallback={null}>
+          <GroupModal open={groupOpen} onClose={() => setGroupOpen(false)} onSubmit={createGroup} existingGroups={groups} />
+        </Suspense>
+      ) : null}
       <PostDetailModal post={selectedPost} highlightedCommentId={highlightedCommentId} currentUser={currentUser} displayName={displayName} initials={initials} roleKey={roleKey} likingPostIds={likingPostIds} onClose={closeSelectedPost} onLike={toggleLike} onReport={setReportModal} onSave={toggleSave} onDelete={deletePost} onShare={openShareModal} onVote={votePoll} onEventInterest={toggleEventInterest} />
       <RestrictionNoticeModal modal={restrictionModal} onClose={() => setRestrictionModal(null)} />
       <CenterConfirmModal modal={confirmModal} onClose={() => setConfirmModal(null)} />
       <AdminReasonConfirmModal modal={adminReasonModal} onClose={() => setAdminReasonModal(null)} />
       <CenterShareModal link={shareModal} onClose={() => setShareModal(null)} />
       {createdGroupPopup && (
-  <div
-    className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm"
-    onMouseDown={() => setCreatedGroupPopup(null)}
-  >
-    <div
-      className="w-[min(92vw,500px)] rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-slate-900"
-      onMouseDown={(event) => event.stopPropagation()}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-2xl font-black text-slate-950 dark:text-white">
-            Tạo thành công
-          </h3>
-          <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-300">
-            Bạn có thể copy mã hoặc vào nhóm ngay.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setCreatedGroupPopup(null)}
-          className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white"
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm"
+          onMouseDown={() => setCreatedGroupPopup(null)}
         >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
-
-      <div className="mt-5 space-y-3">
-        <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2 dark:border-white/10 dark:bg-white/5">
-          <div className="min-w-0 flex-1 px-3">
-            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
-              Mã nhóm
-            </p>
-            <p className="truncate text-sm font-black text-slate-950 dark:text-white">
-              {createdGroupPopup.groupCode || 'Không có'}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              navigator.clipboard?.writeText(createdGroupPopup.groupCode || '')
-              toast.success('Đã copy mã nhóm')
-            }}
-            className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-black text-white transition hover:bg-blue-700"
+          <div
+            className="w-[min(92vw,500px)] rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-slate-900"
+            onMouseDown={(event) => event.stopPropagation()}
           >
-            Copy
-          </button>
-        </div>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-2xl font-black text-slate-950 dark:text-white">
+                  Tạo thành công
+                </h3>
+                <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-300">
+                  Bạn có thể copy mã hoặc vào nhóm ngay.
+                </p>
+              </div>
 
-        {createdGroupPopup.inviteCode && (
-          <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2 dark:border-white/10 dark:bg-white/5">
-            <div className="min-w-0 flex-1 px-3">
-              <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
-                Mã mời
-              </p>
-              <p className="truncate text-sm font-black text-slate-950 dark:text-white">
-                {createdGroupPopup.inviteCode}
-              </p>
+              <button
+                type="button"
+                onClick={() => setCreatedGroupPopup(null)}
+                className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                navigator.clipboard?.writeText(createdGroupPopup.inviteCode)
-                toast.success('Đã copy mã mời')
-              }}
-              className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-black text-white transition hover:bg-blue-700"
-            >
-              Copy
-            </button>
+            <div className="mt-5 space-y-3">
+              <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2 dark:border-white/10 dark:bg-white/5">
+                <div className="min-w-0 flex-1 px-3">
+                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
+                    Mã nhóm
+                  </p>
+                  <p className="truncate text-sm font-black text-slate-950 dark:text-white">
+                    {createdGroupPopup.groupCode || 'Không có'}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(createdGroupPopup.groupCode || '')
+                    toast.success('Đã copy mã nhóm')
+                  }}
+                  className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-black text-white transition hover:bg-blue-700"
+                >
+                  Copy
+                </button>
+              </div>
+
+              {createdGroupPopup.inviteCode && (
+                <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2 dark:border-white/10 dark:bg-white/5">
+                  <div className="min-w-0 flex-1 px-3">
+                    <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
+                      Mã mời
+                    </p>
+                    <p className="truncate text-sm font-black text-slate-950 dark:text-white">
+                      {createdGroupPopup.inviteCode}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(createdGroupPopup.inviteCode)
+                      toast.success('Đã copy mã mời')
+                    }}
+                    className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-black text-white transition hover:bg-blue-700"
+                  >
+                    Copy
+                  </button>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  const targetGroupId = createdGroupPopup.groupId
+
+                  setCreatedGroupPopup(null)
+                  setSelectedGroupChat(null)
+                  setActiveSection(SECTIONS.GROUPS)
+                  setOpenCreatedGroupId(targetGroupId)
+                }}
+                className="mt-2 w-full rounded-2xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700"
+              >
+                Vào nhóm ngay
+              </button>
+            </div>
           </div>
-        )}
-
-<button
-  type="button"
-  onClick={() => {
-    const targetGroupId = createdGroupPopup.groupId
-
-    setCreatedGroupPopup(null)
-    setSelectedGroupChat(null)
-    setActiveSection(SECTIONS.GROUPS)
-    setOpenCreatedGroupId(targetGroupId)
-  }}
-  className="mt-2 w-full rounded-2xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700"
->
-  Vào nhóm ngay
-</button>
-      </div>
-    </div>
-  </div>
-)}
+        </div>
+      )}
       <ReportModal reportPost={reportModal} onClose={() => setReportModal(null)} onSubmit={submitReport} />
       <CommunityChatModal chat={selectedGroupChat} type="group" currentUser={currentUser} displayName={displayName} initials={initials} onClose={() => setSelectedGroupChat(null)} />
       <NotificationPopup notification={notificationModal} onClose={() => setNotificationModal(null)} onGoToPost={() => goToNotificationPost(notificationModal)} />
@@ -2049,9 +2055,26 @@ function Sidebar({
   roleKey,
   unreadNotificationsCount = 0,
   pendingReviewCount = 0,
-  collapsed = false,
-  onToggleCollapsed,
+  onExpandedChange,
 }) {
+  const [desktopHovered, setDesktopHovered] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(Boolean(mobileOpen))
+  const expanded = desktopHovered || mobileSidebarOpen
+
+  useEffect(() => {
+    setMobileSidebarOpen(Boolean(mobileOpen))
+  }, [mobileOpen])
+
+  useEffect(() => {
+    onExpandedChange?.(desktopHovered)
+    return () => onExpandedChange?.(false)
+  }, [desktopHovered, onExpandedChange])
+
+  const closeMobileSidebar = () => {
+    setMobileSidebarOpen(false)
+    onClose?.()
+  }
+
   const items = [
     { id: SECTIONS.HALL, label: 'Cộng đồng ZUNY', icon: Globe2 },
     { id: SECTIONS.GROUPS, label: 'Nhóm học', icon: Users },
@@ -2063,18 +2086,16 @@ function Sidebar({
 
   const content = (
     <aside
-      className={`flex h-full max-h-full shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white px-3 pb-4 pt-1 shadow-xl shadow-slate-200/60 transition-all duration-300 dark:border-blue-950/80 dark:bg-[#030b1d] dark:shadow-black/30 ${
-        collapsed ? 'w-24' : 'w-72'
-      }`}
+      className={`relative flex h-fit max-h-[calc(100dvh-112px)] shrink-0 flex-col overflow-hidden rounded-[26px] border p-2 transition-[width] duration-300 ease-out ${expanded ? 'w-[240px]' : 'w-16'} border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-200/70 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:shadow-black/20`}
     >
-      <div className={`flex shrink-0 items-center gap-3 px-2 pb-5 ${collapsed ? 'justify-center' : 'justify-between'}`}>
-        <div className={`flex min-w-0 items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+      <div className={`flex h-[64px] shrink-0 items-center border-b ${expanded ? 'gap-3 px-2' : 'justify-center px-1'} border-slate-200/80 dark:border-white/10`}>
+        <div className={`flex min-w-0 items-center gap-3 ${expanded ? '' : 'justify-center'}`}>
           <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-300/50 bg-gradient-to-br from-cyan-400 via-blue-500 to-blue-700 text-white shadow-[0_0_24px_rgba(37,99,235,0.55)] dark:border-blue-400/40">
             <Globe2 className="h-5 w-5" />
             <span className="absolute inset-1 rounded-xl border border-white/15" />
           </div>
 
-          {!collapsed && (
+          {expanded && (
             <div className="min-w-0">
               <h1 className="truncate text-[15px] font-black uppercase tracking-[0.02em] text-slate-950 dark:text-white">Cộng đồng ZUNY</h1>
               <p className="mt-0.5 truncate text-[10px] font-bold text-slate-400 dark:text-blue-200/55">Học tập · Chia sẻ · Kết nối</p>
@@ -2082,7 +2103,7 @@ function Sidebar({
           )}
         </div>
 
-        <button type="button" onClick={onClose} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10 lg:hidden">
+        <button type="button" onClick={closeMobileSidebar} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10 lg:hidden">
           <X className="h-5 w-5" />
         </button>
       </div>
@@ -2098,20 +2119,17 @@ function Sidebar({
               key={item.id}
               type="button"
               onClick={() => onChange(item.id)}
-              title={collapsed ? item.label : undefined}
-              className={`group flex w-full items-center rounded-xl border px-3 py-2.5 text-sm font-black transition-all duration-200 ${
-                collapsed ? 'justify-center' : 'gap-3'
-              } ${
-                active
+              title={!expanded ? item.label : undefined}
+              className={`group flex w-full items-center rounded-xl border px-3 py-2.5 text-sm font-black transition-all duration-200 ${expanded ? 'gap-3' : 'justify-center'
+                } ${active
                   ? 'border-blue-400/50 bg-gradient-to-r from-blue-600/20 via-blue-500/15 to-cyan-400/10 text-blue-700 shadow-[inset_0_0_18px_rgba(37,99,235,0.08),0_0_20px_rgba(37,99,235,0.12)] dark:border-blue-500/60 dark:text-white dark:shadow-[inset_0_0_20px_rgba(37,99,235,0.14),0_0_22px_rgba(37,99,235,0.18)]'
                   : 'border-transparent text-slate-500 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:border-blue-900/60 dark:hover:bg-blue-950/35 dark:hover:text-white'
-              }`}
+                }`}
             >
-              <span className={`relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all duration-200 ${
-                active
-                  ? 'bg-blue-600 text-white shadow-[0_0_18px_rgba(37,99,235,0.75)]'
-                  : 'text-slate-400 group-hover:text-blue-500 dark:text-slate-400 dark:group-hover:text-blue-300'
-              }`}>
+              <span className={`relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all duration-200 ${active
+                ? 'bg-blue-600 text-white shadow-[0_0_18px_rgba(37,99,235,0.75)]'
+                : 'text-slate-400 group-hover:text-blue-500 dark:text-slate-400 dark:group-hover:text-blue-300'
+                }`}>
                 <Icon className={`h-4.5 w-4.5 ${active ? 'drop-shadow-[0_0_7px_rgba(255,255,255,0.8)]' : ''}`} />
                 {item.badge > 0 && (
                   <span className="absolute -right-2.5 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-blue-500 px-1 text-[9px] font-black text-white shadow-lg dark:border-[#030b1d]">
@@ -2119,40 +2137,41 @@ function Sidebar({
                   </span>
                 )}
               </span>
-              {!collapsed && <span className="truncate">{item.label}</span>}
+              {expanded && <span className="truncate">{item.label}</span>}
             </button>
           )
         })}
       </nav>
 
-      <div className="mt-auto shrink-0 pt-4">
-        <button
-          type="button"
-          onClick={onToggleCollapsed}
-          title={collapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
-          className={`group hidden w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-500 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 dark:border-blue-950/80 dark:bg-blue-950/25 dark:text-slate-300 dark:hover:border-blue-700 dark:hover:bg-blue-900/30 dark:hover:text-blue-200 lg:flex ${collapsed ? 'h-12 px-0' : ''}`}
-        >
-          {collapsed ? <PanelRightOpen className="h-5 w-5" /> : <><PanelLeftClose className="h-5 w-5" /><span>Thu gọn menu</span></>}
-        </button>
-      </div>
     </aside>
   )
 
   return (
     <>
-      <div className="fixed left-0 top-[var(--zuny-navbar-height,80px)] z-30 hidden h-[calc(100dvh-var(--zuny-navbar-height,80px))] lg:block">{content}</div>
-      {mobileOpen && <div className="fixed inset-0 z-[80] bg-slate-950/60 backdrop-blur-sm lg:hidden" onMouseDown={onClose}><div className="h-full" onMouseDown={(event) => event.stopPropagation()}>{content}</div></div>}
+      {desktopHovered && (
+        <button
+          type="button"
+          aria-label="Đóng menu cộng đồng"
+          className="fixed inset-0 z-[39] hidden cursor-default lg:block"
+          onClick={() => setDesktopHovered(false)}
+        />
+      )}
+      <div className="fixed left-4 top-1/2 z-40 hidden -translate-y-1/2 lg:block" onMouseEnter={() => setDesktopHovered(true)} onMouseLeave={() => setDesktopHovered(false)}>{content}</div>
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 z-[80] bg-slate-950/60 backdrop-blur-sm lg:hidden" onMouseDown={closeMobileSidebar}>
+          <div className="absolute left-0 top-1/2 -translate-y-1/2" onMouseDown={(event) => event.stopPropagation()}>
+            {content}
+          </div>
+        </div>
+      )}
     </>
   )
 }
 
-function TopBar({ search, setSearch, onCompose, onMenu, initials, unread, profileLoading }) {
+function TopBar({ search, setSearch, onCompose, initials, unread, profileLoading }) {
   return (
-<header className="sticky top-[var(--zuny-navbar-height,80px)] z-30 bg-white/85 px-4 py-3 backdrop-blur-xl dark:bg-slate-950/80 lg:px-8">
+    <header className="sticky top-[var(--zuny-navbar-height,80px)] z-30 bg-white/85 px-4 py-3 backdrop-blur-xl dark:bg-slate-950/80 lg:px-8">
       <div className="mx-auto flex max-w-7xl items-center gap-3">
-        <button type="button" onClick={onMenu} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 lg:hidden">
-          <Menu className="h-5 w-5" />
-        </button>
         <div className="relative min-w-0 flex-1 lg:max-w-2xl">
           <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm kiếm bài viết, câu hỏi, tài liệu..." className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-11 py-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:bg-slate-900" />
@@ -2284,11 +2303,10 @@ function StatusFilterBar({ value, onChange, options }) {
           key={item.value}
           type="button"
           onClick={() => onChange(item.value)}
-          className={`rounded-2xl px-4 py-2 text-xs font-black transition ${
-            value === item.value
-              ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-              : 'bg-white text-slate-500 hover:bg-slate-100 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
-          }`}
+          className={`rounded-2xl px-4 py-2 text-xs font-black transition ${value === item.value
+            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+            : 'bg-white text-slate-500 hover:bg-slate-100 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
+            }`}
         >
           {item.label}
         </button>
@@ -2303,7 +2321,7 @@ function FilterBar({
   sortBy,
   setSortBy,
   search = '',
-  setSearch = () => {},
+  setSearch = () => { },
 }) {
   const [sortOpen, setSortOpen] = useState(false)
 
@@ -2322,20 +2340,17 @@ function FilterBar({
               type="button"
               onClick={() => setFilter(tab.value)}
               title={tab.label}
-              className={`group flex h-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-xs font-black transition-all duration-300 ${
-                active ? 'w-auto gap-1.5 px-3' : 'w-10 px-0'
-              } ${
-                active
+              className={`group flex h-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-xs font-black transition-all duration-300 ${active ? 'w-auto gap-1.5 px-3' : 'w-10 px-0'
+                } ${active
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
                   : 'bg-white text-slate-500 hover:bg-slate-100 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
-              }`}
+                }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
 
               <span
-                className={`whitespace-nowrap transition-all duration-300 ${
-                  active ? 'max-w-24 opacity-100' : 'max-w-0 opacity-0'
-                }`}
+                className={`whitespace-nowrap transition-all duration-300 ${active ? 'max-w-24 opacity-100' : 'max-w-0 opacity-0'
+                  }`}
               >
                 {tab.label}
               </span>
@@ -2390,9 +2405,8 @@ function FilterBar({
 
           <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-100 dark:bg-white/10">
             <ChevronDown
-              className={`h-4 w-4 transition-transform duration-300 ${
-                sortOpen ? 'rotate-180' : ''
-              }`}
+              className={`h-4 w-4 transition-transform duration-300 ${sortOpen ? 'rotate-180' : ''
+                }`}
             />
           </span>
         </button>
@@ -2417,11 +2431,10 @@ function FilterBar({
                   setSortBy(value)
                   setSortOpen(false)
                 }}
-                className={`block w-full rounded-xl px-3 py-2.5 text-left text-xs font-black transition ${
-                  sortBy === value
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white'
-                }`}
+                className={`block w-full rounded-xl px-3 py-2.5 text-left text-xs font-black transition ${sortBy === value
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white'
+                  }`}
               >
                 {label}
               </button>
@@ -2439,7 +2452,7 @@ function PostList({
   currentUserId,
   roleKey,
   userProfiles = {},
-  onOpenUserProfile = () => {},
+  onOpenUserProfile = () => { },
   likingPostIds = [],
   showStatusBadge = false,
   onOpen,
@@ -2449,10 +2462,10 @@ function PostList({
   onDelete,
   onShare,
   onVote,
-  onEventInterest = () => {},
+  onEventInterest = () => { },
   onClear,
 }) {
-    if (loading) return <div className="space-y-4">{[1, 2, 3].map((item) => <div key={item} className="h-52 animate-pulse rounded-3xl bg-white dark:bg-white/5" />)}</div>
+  if (loading) return <div className="space-y-4">{[1, 2, 3].map((item) => <div key={item} className="h-52 animate-pulse rounded-3xl bg-white dark:bg-white/5" />)}</div>
   if (!posts.length) return <EmptyState icon="🔍" title="Không tìm thấy bài viết" description="Thử đổi bộ lọc hoặc từ khóa tìm kiếm." actionLabel="Khởi động lại" onAction={onClear} />
   return <div className="space-y-4">{posts.map((post) => <PostCard key={post.id} post={post} currentUserId={currentUserId} roleKey={roleKey} authorProfile={userProfiles[post.authorId] || {}} onOpenUserProfile={onOpenUserProfile} liking={likingPostIds.includes(post.id)} showStatusBadge={showStatusBadge} onOpen={onOpen} onLike={onLike} onReport={onReport} onSave={onSave} onDelete={onDelete} onShare={onShare} onVote={onVote} onEventInterest={onEventInterest} />)}</div>
 }
@@ -2462,7 +2475,7 @@ function PostCard({
   currentUserId,
   roleKey,
   authorProfile = {},
-  onOpenUserProfile = () => {},
+  onOpenUserProfile = () => { },
   liking = false,
   showStatusBadge = false,
   onOpen,
@@ -2470,10 +2483,10 @@ function PostCard({
   onReport,
   onSave,
   onDelete,
-  onShare = () => {},
-  onVote = () => {},
-  onEventInterest = () => {},
-}) {  
+  onShare = () => { },
+  onVote = () => { },
+  onEventInterest = () => { },
+}) {
   const type = POST_TYPES.find((item) => item.value === post.type) || POST_TYPES[2]
   const TypeIcon = type.icon
   const userReaction = getUserReaction(post, currentUserId)
@@ -2488,11 +2501,10 @@ function PostCard({
   const showEventInterestToggle = isEventPost && !adminPost && currentUserId
 
   return (
-    <article className={`cursor-pointer overflow-hidden rounded-3xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl dark:bg-white/5 ${
-      adminPost
-        ? 'border-amber-300 shadow-amber-200/40 dark:border-amber-400/40 dark:bg-amber-500/5 dark:shadow-amber-500/10'
-        : 'border-slate-200 dark:border-white/10'
-    }`}>
+    <article className={`cursor-pointer overflow-hidden rounded-3xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl dark:bg-white/5 ${adminPost
+      ? 'border-amber-300 shadow-amber-200/40 dark:border-amber-400/40 dark:bg-amber-500/5 dark:shadow-amber-500/10'
+      : 'border-slate-200 dark:border-white/10'
+      }`}>
       <div
         role="button"
         tabIndex={0}
@@ -2511,11 +2523,10 @@ function PostCard({
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-black text-slate-950 dark:text-white">{post.authorName || 'Người dùng ZUNY'}</h3>
-                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-black ${
-                  adminPost
-                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200'
-                    : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
-                }`}><ShieldCheck className="h-3 w-3" />{roleText[post.authorRole] || 'Thành viên'}</span>
+                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-black ${adminPost
+                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200'
+                  : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
+                  }`}><ShieldCheck className="h-3 w-3" />{roleText[post.authorRole] || 'Thành viên'}</span>
                 {adminPost && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-2 py-0.5 text-[11px] font-black text-white shadow-lg shadow-amber-500/20">
                     ⭐ Nổi bật
@@ -2544,12 +2555,12 @@ function PostCard({
           </div>
         )}
 
-{showStatusBadge &&
-  post.status === 'approved' && (
-    <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200">
-      ✅ Bài đăng thành công
-    </div>
-)}
+        {showStatusBadge &&
+          post.status === 'approved' && (
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200">
+              ✅ Bài đăng thành công
+            </div>
+          )}
 
         {post.status === 'rejected' && post.authorId === currentUserId && (
           <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1 text-xs font-black text-rose-700 dark:bg-rose-500/15 dark:text-rose-200">
@@ -2575,11 +2586,10 @@ function PostCard({
 
         {post.imageUrl && <img src={post.imageUrl} alt="Minh họa bài viết" className="mt-4 max-h-80 w-full rounded-2xl object-cover" />}
         {post.type === 'event' && (post.eventStartAt || post.eventDate || post.eventEndAt || post.eventLocation) && (
-          <div className={`mt-4 rounded-2xl px-4 py-3 text-sm font-black ${
-            adminPost
-              ? 'border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-200'
-              : 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-200'
-          }`}>
+          <div className={`mt-4 rounded-2xl px-4 py-3 text-sm font-black ${adminPost
+            ? 'border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-200'
+            : 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-200'
+            }`}>
             <div className="grid gap-2 sm:grid-cols-2">
               <div className="rounded-2xl bg-white/70 px-3 py-2 dark:bg-white/10">
                 <p className="text-[10px] uppercase tracking-[0.14em] opacity-70">Thời gian mở</p>
@@ -2611,22 +2621,20 @@ function PostCard({
               <button
                 type="button"
                 onClick={() => onEventInterest(post, true)}
-                className={`rounded-xl px-3 py-2 text-xs font-black transition ${
-                  eventInterested
-                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                    : 'bg-white text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-200'
-                }`}
+                className={`rounded-xl px-3 py-2 text-xs font-black transition ${eventInterested
+                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                  : 'bg-white text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-200'
+                  }`}
               >
                 Quan tâm
               </button>
               <button
                 type="button"
                 onClick={() => onEventInterest(post, false)}
-                className={`rounded-xl px-3 py-2 text-xs font-black transition ${
-                  eventNotInterested
-                    ? 'bg-slate-700 text-white dark:bg-slate-600'
-                    : 'bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
-                }`}
+                className={`rounded-xl px-3 py-2 text-xs font-black transition ${eventNotInterested
+                  ? 'bg-slate-700 text-white dark:bg-slate-600'
+                  : 'bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
+                  }`}
               >
                 Không quan tâm
               </button>
@@ -2723,13 +2731,12 @@ function PollBlock({ post, currentUserId, onVote }) {
                 if (pollClosed) return
                 onVote(post, option.id)
               }}
-              className={`relative w-full overflow-hidden rounded-2xl border px-4 py-3 text-left transition ${
-                pollClosed
-                  ? 'cursor-not-allowed border-slate-200 bg-white/70 opacity-80 dark:border-white/10 dark:bg-slate-900/50'
-                  : selected
-                    ? 'border-fuchsia-400 bg-white dark:bg-slate-900'
-                    : 'border-slate-200 bg-white hover:border-fuchsia-300 dark:border-white/10 dark:bg-slate-900/70 dark:hover:border-fuchsia-400/50'
-              }`}
+              className={`relative w-full overflow-hidden rounded-2xl border px-4 py-3 text-left transition ${pollClosed
+                ? 'cursor-not-allowed border-slate-200 bg-white/70 opacity-80 dark:border-white/10 dark:bg-slate-900/50'
+                : selected
+                  ? 'border-fuchsia-400 bg-white dark:bg-slate-900'
+                  : 'border-slate-200 bg-white hover:border-fuchsia-300 dark:border-white/10 dark:bg-slate-900/70 dark:hover:border-fuchsia-400/50'
+                }`}
             >
               <span className="absolute inset-y-0 left-0 bg-blue-500/15 transition-all" style={{ width: `${percent}%` }} />
               <span className="relative flex items-center justify-between gap-3">
@@ -2748,7 +2755,7 @@ function PollBlock({ post, currentUserId, onVote }) {
   )
 }
 
-function ReactionButton({ reaction, summary, disabled = false, onReact = () => {} }) {
+function ReactionButton({ reaction, summary, disabled = false, onReact = () => { } }) {
   const [open, setOpen] = useState(false)
   const closeTimerRef = useRef(null)
   const holdTimerRef = useRef(null)
@@ -2829,11 +2836,10 @@ function ReactionButton({ reaction, summary, disabled = false, onReact = () => {
           }
           onReact(reaction || 'love')
         }}
-        className={`inline-flex touch-manipulation items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50 ${
-          reaction
-            ? 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-200'
-            : 'text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10'
-        }`}
+        className={`inline-flex touch-manipulation items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50 ${reaction
+          ? 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-200'
+          : 'text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10'
+          }`}
       >
         <span className="flex -space-x-1">
           {displayItems.length ? displayItems.map((item) => <span key={item.value}>{item.emoji}</span>) : <span>{selected?.emoji || '❤️'}</span>}
@@ -2844,7 +2850,7 @@ function ReactionButton({ reaction, summary, disabled = false, onReact = () => {
   )
 }
 
-function MiniReactionButton({ reaction, summary, onReact = () => {} }) {
+function MiniReactionButton({ reaction, summary, onReact = () => { } }) {
   const [open, setOpen] = useState(false)
   const closeTimerRef = useRef(null)
   const holdTimerRef = useRef(null)
@@ -2924,11 +2930,10 @@ function MiniReactionButton({ reaction, summary, onReact = () => {} }) {
           }
           onReact(reaction || 'love')
         }}
-        className={`inline-flex touch-manipulation items-center gap-1 rounded-full px-2 py-1 text-[11px] font-black transition ${
-          reaction
-            ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200'
-            : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10'
-        }`}
+        className={`inline-flex touch-manipulation items-center gap-1 rounded-full px-2 py-1 text-[11px] font-black transition ${reaction
+          ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200'
+          : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10'
+          }`}
       >
         <span className="flex -space-x-1">
           {displayItems.length ? displayItems.map((item) => <span key={item.value}>{item.emoji}</span>) : <span>{selected?.emoji || '♡'}</span>}
@@ -2956,17 +2961,16 @@ function PostMoreMenu({ onReport }) {
   )
 }
 
-function ActionButton({ icon: Icon, label, count, active, disabled = false, onClick = () => {} }) {
+function ActionButton({ icon: Icon, label, count, active, disabled = false, onClick = () => { } }) {
   return (
     <button
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50 ${
-        active
-          ? 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-200'
-          : 'text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10'
-      }`}
+      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50 ${active
+        ? 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-200'
+        : 'text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10'
+        }`}
     >
       <Icon className={`h-4 w-4 ${active ? 'fill-current' : ''}`} />
       <span>{label}</span>
@@ -3004,7 +3008,7 @@ function getGroupTypeKey(group = {}) {
   return 'public'
 }
 
-function PersonalAdminPanel({ users = [], currentUserId = '', search = '', onSearchChange = () => {}, onToggleRestriction = () => {} }) {
+function PersonalAdminPanel({ users = [], currentUserId = '', search = '', onSearchChange = () => { }, onToggleRestriction = () => { } }) {
   const keyword = normalizeText(search.trim())
   const visibleUsers = users
     .filter((user) => user.id !== currentUserId)
@@ -3321,7 +3325,7 @@ function AdminReviewList({ mode = 'pending', posts, reports = [], onApprove, onR
   )
 }
 
-function NotificationList({ notifications, onRead = () => {}, onDelete = () => {} }) {
+function NotificationList({ notifications, onRead = () => { }, onDelete = () => { } }) {
   if (!notifications.length) {
     return (
       <EmptyState
@@ -3337,15 +3341,14 @@ function NotificationList({ notifications, onRead = () => {}, onDelete = () => {
       {notifications.map((item) => (
         <div
           key={item.id}
-          className={`flex w-full items-start gap-3 rounded-3xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg ${
-            item.category === 'admin' || item.isAdminNotice
-              ? item.read
-                ? 'border-amber-200 bg-amber-50/70 shadow-amber-100/50 dark:border-amber-400/20 dark:bg-amber-500/10 dark:shadow-amber-500/10'
-                : 'border-amber-300 bg-amber-50 shadow-lg shadow-amber-200/50 dark:border-amber-400/40 dark:bg-amber-500/15 dark:shadow-amber-500/10'
-              : item.read
-                ? 'border-slate-200 bg-white dark:border-white/10 dark:bg-white/5'
-                : 'border-blue-300 bg-blue-50 dark:border-blue-400/30 dark:bg-blue-500/10'
-          }`}
+          className={`flex w-full items-start gap-3 rounded-3xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg ${item.category === 'admin' || item.isAdminNotice
+            ? item.read
+              ? 'border-amber-200 bg-amber-50/70 shadow-amber-100/50 dark:border-amber-400/20 dark:bg-amber-500/10 dark:shadow-amber-500/10'
+              : 'border-amber-300 bg-amber-50 shadow-lg shadow-amber-200/50 dark:border-amber-400/40 dark:bg-amber-500/15 dark:shadow-amber-500/10'
+            : item.read
+              ? 'border-slate-200 bg-white dark:border-white/10 dark:bg-white/5'
+              : 'border-blue-300 bg-blue-50 dark:border-blue-400/30 dark:bg-blue-500/10'
+            }`}
         >
           {!item.read ? (
             <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.9)]" />
@@ -3355,13 +3358,12 @@ function NotificationList({ notifications, onRead = () => {}, onDelete = () => {
 
           <button type="button" onClick={() => onRead(item)} className="min-w-0 flex-1 text-left">
             <div className="mb-1 flex flex-wrap items-center gap-2">
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
-                item.category === 'event' || item.type === 'event'
-                  ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200'
-                  : item.category === 'admin' || item.type === 'admin'
-                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200'
-                    : 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200'
-              }`}>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${item.category === 'event' || item.type === 'event'
+                ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200'
+                : item.category === 'admin' || item.type === 'admin'
+                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200'
+                  : 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200'
+                }`}>
                 {item.category === 'event' || item.type === 'event'
                   ? 'Sự kiện'
                   : item.category === 'admin' || item.type === 'admin'
@@ -3390,7 +3392,7 @@ function NotificationList({ notifications, onRead = () => {}, onDelete = () => {
 }
 
 
-function NotificationPopup({ notification, onClose, onGoToPost = () => {} }) {
+function NotificationPopup({ notification, onClose, onGoToPost = () => { } }) {
   if (!notification) return null
 
   const isEvent = notification.category === 'event' || notification.type === 'event'
@@ -3415,13 +3417,12 @@ function NotificationPopup({ notification, onClose, onGoToPost = () => {} }) {
         </button>
 
         <div className="pr-10">
-          <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl text-xl ${
-            isEvent
-              ? 'bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-200'
-              : isAdmin
-                ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-200'
-                : 'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-200'
-          }`}>
+          <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl text-xl ${isEvent
+            ? 'bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-200'
+            : isAdmin
+              ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-200'
+              : 'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-200'
+            }`}>
             {isEvent ? '🗓️' : isAdmin ? '🛡️' : '🔔'}
           </div>
 
@@ -3475,7 +3476,7 @@ function RightSidebar({ posts, groups, profile, currentUserId = '', onOpenPost }
     const counts = new Map()
 
     posts.forEach((post) => {
-      ;(post.tags || []).forEach((tag) => {
+      ; (post.tags || []).forEach((tag) => {
         const name = String(tag).trim()
         if (!name) return
         counts.set(name, (counts.get(name) || 0) + 1)
@@ -3536,24 +3537,24 @@ function RightSidebar({ posts, groups, profile, currentUserId = '', onOpenPost }
           Chủ đề nóng
         </h3>
 
-<div
-  className={`${listScrollClass} space-y-3`}
-  style={{
-    maxHeight: hotTopics.length > 6 ? '240px' : 'auto',
-  }}
->          {visibleHotTopics.length ? visibleHotTopics.map((topic, index) => (
-            <div key={topic.name} className="flex items-center gap-3">
-              <span className="w-4 text-center text-xs font-black text-slate-400">{index + 1}</span>
-              <span className="max-w-[130px] truncate rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
-                {topic.name}
-              </span>
-<span className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-slate-400">
-  <TrendingUp className="h-3 w-3" />
-  {Math.round(topic.score)}
-</span>            </div>
-          )) : (
-            <p className="text-sm font-semibold text-slate-400">Chưa có chủ đề nóng.</p>
-          )}
+        <div
+          className={`${listScrollClass} space-y-3`}
+          style={{
+            maxHeight: hotTopics.length > 6 ? '240px' : 'auto',
+          }}
+        >          {visibleHotTopics.length ? visibleHotTopics.map((topic, index) => (
+          <div key={topic.name} className="flex items-center gap-3">
+            <span className="w-4 text-center text-xs font-black text-slate-400">{index + 1}</span>
+            <span className="max-w-[130px] truncate rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
+              {topic.name}
+            </span>
+            <span className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-slate-400">
+              <TrendingUp className="h-3 w-3" />
+              {Math.round(topic.score)}
+            </span>            </div>
+        )) : (
+          <p className="text-sm font-semibold text-slate-400">Chưa có chủ đề nóng.</p>
+        )}
         </div>
 
         {hotTopics.length > hotVisible && (
@@ -3570,28 +3571,27 @@ function RightSidebar({ posts, groups, profile, currentUserId = '', onOpenPost }
           Sự kiện sắp tới
         </h3>
 
-<div
-  className={`${listScrollClass} space-y-4`}
-  style={{
-    maxHeight: upcomingEvents.length > 4 ? '220px' : 'auto',
-  }}
->          {visibleEvents.length ? visibleEvents.map((event) => (
-            <button key={event.id} type="button" onClick={() => onOpenPost(event.post)} className={`flex w-full gap-3 rounded-2xl p-2 text-left transition hover:bg-slate-100 dark:hover:bg-white/10 ${
-              event.adminEvent
-                ? 'border border-amber-300 bg-amber-50 shadow-lg shadow-amber-200/40 dark:border-amber-400/30 dark:bg-amber-500/10 dark:shadow-amber-500/10'
-                : event.interested
-                  ? 'border border-emerald-300 bg-emerald-50 dark:border-emerald-400/30 dark:bg-emerald-500/10'
-                  : ''
+        <div
+          className={`${listScrollClass} space-y-4`}
+          style={{
+            maxHeight: upcomingEvents.length > 4 ? '220px' : 'auto',
+          }}
+        >          {visibleEvents.length ? visibleEvents.map((event) => (
+          <button key={event.id} type="button" onClick={() => onOpenPost(event.post)} className={`flex w-full gap-3 rounded-2xl p-2 text-left transition hover:bg-slate-100 dark:hover:bg-white/10 ${event.adminEvent
+            ? 'border border-amber-300 bg-amber-50 shadow-lg shadow-amber-200/40 dark:border-amber-400/30 dark:bg-amber-500/10 dark:shadow-amber-500/10'
+            : event.interested
+              ? 'border border-emerald-300 bg-emerald-50 dark:border-emerald-400/30 dark:bg-emerald-500/10'
+              : ''
             }`}>
-              <div className={`w-1 shrink-0 rounded-full ${event.color}`} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-black text-slate-900 dark:text-white">{event.title}</p>
-                <p className="text-xs font-semibold text-slate-400">{event.time}</p>
-                {event.adminEvent && <p className="mt-1 text-[10px] font-black uppercase tracking-[0.12em] text-amber-500">Ghim bởi admin_dev</p>}
-                {!event.adminEvent && event.interested && <p className="mt-1 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-500">Bạn quan tâm</p>}
-              </div>
-            </button>
-          )) : <p className="text-sm font-semibold text-slate-400">Chưa có sự kiện sắp tới.</p>}
+            <div className={`w-1 shrink-0 rounded-full ${event.color}`} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-black text-slate-900 dark:text-white">{event.title}</p>
+              <p className="text-xs font-semibold text-slate-400">{event.time}</p>
+              {event.adminEvent && <p className="mt-1 text-[10px] font-black uppercase tracking-[0.12em] text-amber-500">Ghim bởi admin_dev</p>}
+              {!event.adminEvent && event.interested && <p className="mt-1 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-500">Bạn quan tâm</p>}
+            </div>
+          </button>
+        )) : <p className="text-sm font-semibold text-slate-400">Chưa có sự kiện sắp tới.</p>}
         </div>
 
         {upcomingEvents.length > eventsVisible && (
@@ -3878,11 +3878,10 @@ function ToggleSwitch({ checked, onChange, icon, label }) {
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`flex items-center justify-between gap-4 rounded-2xl border px-4 py-3 text-left transition ${
-        checked
-          ? 'border-blue-400 bg-blue-50 dark:border-blue-400/60 dark:bg-blue-500/15'
-          : 'border-slate-200 bg-slate-50 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
-      }`}
+      className={`flex items-center justify-between gap-4 rounded-2xl border px-4 py-3 text-left transition ${checked
+        ? 'border-blue-400 bg-blue-50 dark:border-blue-400/60 dark:bg-blue-500/15'
+        : 'border-slate-200 bg-slate-50 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
+        }`}
     >
       <span className="flex items-center gap-3 text-sm font-black text-slate-700 dark:text-slate-200"><span>{icon}</span>{label}</span>
       <span className={`flex h-7 w-12 items-center rounded-full p-1 transition ${checked ? 'bg-blue-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
@@ -3921,7 +3920,7 @@ function buildCommentTree(comments = []) {
   return roots
 }
 
-function PostDetailModal({ post, highlightedCommentId = '', currentUser, displayName, initials, roleKey, likingPostIds = [], onClose, onLike, onReport, onSave, onDelete, onShare, onVote, onEventInterest = () => {} }) {
+function PostDetailModal({ post, highlightedCommentId = '', currentUser, displayName, initials, roleKey, likingPostIds = [], onClose, onLike, onReport, onSave, onDelete, onShare, onVote, onEventInterest = () => { } }) {
   const [comments, setComments] = useState([])
   const [commentText, setCommentText] = useState('')
   const [replyTarget, setReplyTarget] = useState(null)
@@ -4015,7 +4014,7 @@ function PostDetailModal({ post, highlightedCommentId = '', currentUser, display
             currentUserId={currentUser?.uid}
             roleKey={roleKey}
             liking={likingPostIds.includes(post.id)}
-            onOpen={() => {}}
+            onOpen={() => { }}
             onLike={onLike}
             onReport={onReport}
             onSave={onSave}
@@ -4063,7 +4062,7 @@ function PostDetailModal({ post, highlightedCommentId = '', currentUser, display
   )
 }
 
-function CommentItem({ comment, level = 1, highlightedCommentId = '', currentUserId, replyTargetId = '', replyText = '', replyInputRef, canComment = true, onReply, onCancelReply, onChangeReplyText, onSubmitReply, onReact, onShare = () => {} }) {
+function CommentItem({ comment, level = 1, highlightedCommentId = '', currentUserId, replyTargetId = '', replyText = '', replyInputRef, canComment = true, onReply, onCancelReply, onChangeReplyText, onSubmitReply, onReact, onShare = () => { } }) {
   const userReaction = getUserReaction(comment, currentUserId)
   const summary = getReactionSummary(comment.reactions || {}, comment.reactionCounts || {})
   const canReply = Number(comment.depth || level) < 3
@@ -4196,11 +4195,10 @@ function ReportModal({ reportPost, onClose, onSubmit }) {
 
         <div className="mt-5 space-y-3">
           {REPORT_REASONS.map((item) => (
-            <label key={item} className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-black transition ${
-              reason === item
-                ? 'border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-400/40 dark:bg-rose-500/10 dark:text-rose-200'
-                : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
-            }`}>
+            <label key={item} className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-black transition ${reason === item
+              ? 'border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-400/40 dark:bg-rose-500/10 dark:text-rose-200'
+              : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
+              }`}>
               <input type="radio" name="report-reason" checked={reason === item} onChange={() => setReason(item)} />
               {item}
             </label>

@@ -45,7 +45,7 @@ export default function Setting({ darkMode, onToggleDarkMode }) {
   }
 
   const [activeTab, setActiveTab] = useState(getTabFromUrl)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
   const [settings, setSettings] = useState(null)
@@ -228,8 +228,8 @@ export default function Setting({ darkMode, onToggleDarkMode }) {
       if (!response.ok) {
         throw new Error(
           data.error ||
-            data.message ||
-            'Đổi mật khẩu thất bại',
+          data.message ||
+          'Đổi mật khẩu thất bại',
         )
       }
 
@@ -246,7 +246,7 @@ export default function Setting({ darkMode, onToggleDarkMode }) {
 
       toast.error(
         error?.message ||
-          'Đổi mật khẩu thất bại',
+        'Đổi mật khẩu thất bại',
       )
     }
   }
@@ -324,9 +324,10 @@ export default function Setting({ darkMode, onToggleDarkMode }) {
   return (
     <main className="min-h-[calc(100vh-72px)] bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white">
       <aside
-        className={`fixed left-0 top-[72px] z-40 hidden h-[calc(100vh-72px)] border-r border-slate-200 bg-white transition-all duration-300 dark:border-white/10 dark:bg-slate-900 xl:block ${
-          sidebarCollapsed ? 'w-[88px]' : 'w-[240px]'
-        }`}
+        onMouseEnter={() => setSidebarCollapsed(false)}
+        onMouseLeave={() => setSidebarCollapsed(true)}
+        className={`fixed left-0 top-[72px] z-40 hidden h-[calc(100vh-72px)] border-r border-slate-200 bg-white transition-all duration-300 dark:border-white/10 dark:bg-slate-900 xl:block ${sidebarCollapsed ? 'w-[72px]' : 'w-[240px]'
+          }`}
       >
         <SidebarContent
           user={user}
@@ -367,17 +368,20 @@ export default function Setting({ darkMode, onToggleDarkMode }) {
         </div>
       )}
 
+      <nav className="settings-mobile-navbar xl:hidden" aria-label="Điều hướng cài đặt">
+        {settingsTabs.map((tab) => { const Icon = tab.icon; return <button key={tab.id} type="button" className={activeTab === tab.id ? 'active' : ''} onClick={() => handleChangeTab(tab.id)} aria-label={tab.label}><Icon size={19} /><small>{tab.label}</small></button> })}
+      </nav>
+
       <section
-        className={`min-h-[calc(100vh-72px)] transition-all duration-300 ${
-          sidebarCollapsed ? 'xl:pl-[88px]' : 'xl:pl-[240px]'
-        }`}
+        className={`min-h-[calc(100vh-72px)] transition-all duration-300 ${'xl:pl-[72px]'
+          }`}
       >
         <header className="border-b border-slate-200 bg-white px-5 py-5 dark:border-white/10 dark:bg-slate-900">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setMobileSidebarOpen(true)}
-              className="rounded-xl border border-slate-200 bg-white p-2 dark:border-white/10 dark:bg-slate-800 xl:hidden"
+              className="hidden"
             >
               <Menu size={22} />
             </button>
@@ -450,9 +454,8 @@ function SidebarContent({
   return (
     <div className="flex h-full flex-col bg-white dark:bg-slate-900">
       <div
-        className={`flex items-center border-b border-slate-200 px-4 py-4 dark:border-white/10 ${
-          collapsed ? 'justify-center' : 'justify-between'
-        }`}
+        className={`flex items-center border-b border-slate-200 px-4 py-4 dark:border-white/10 ${collapsed ? 'justify-center' : 'justify-between'
+          }`}
       >
         {!collapsed && (
           <div>
@@ -482,21 +485,20 @@ function SidebarContent({
 
       <div className={collapsed ? 'px-0 py-4' : 'px-4 py-4'}>
         <div
-          className={`flex items-center gap-3 ${
-            collapsed
+          className={`flex items-center gap-3 ${collapsed
               ? 'justify-center'
               : 'rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-slate-800/60'
-          }`}
+            }`}
         >
           {getUserAvatar({
-          ...(user || {}),
-          ...(userDetails || {}),
-        }, darkMode) ? (
+            ...(user || {}),
+            ...(userDetails || {}),
+          }, darkMode) ? (
             <img
               src={getUserAvatar({
-          ...(user || {}),
-          ...(userDetails || {}),
-        }, darkMode)}
+                ...(user || {}),
+                ...(userDetails || {}),
+              }, darkMode)}
               alt={displayName}
               title={displayName}
               className="h-11 w-11 rounded-full object-cover"
@@ -534,24 +536,20 @@ function SidebarContent({
               type="button"
               title={tab.label}
               onClick={() => onChangeTab(tab.id)}
-              className={`flex w-full items-center rounded-xl font-bold transition ${
-                collapsed
+              className={`flex w-full items-center rounded-xl font-bold transition ${collapsed
                   ? 'h-12 justify-center'
                   : 'gap-3 px-3 py-2.5 text-left text-sm'
-              } ${
-                active
+                } ${active
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                   : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
-              }`}
+                }`}
             >
               <span
-                className={`flex shrink-0 items-center justify-center rounded-xl ${
-                  collapsed ? 'h-10 w-10' : 'h-9 w-9'
-                } ${
-                  active
+                className={`flex shrink-0 items-center justify-center rounded-xl ${collapsed ? 'h-10 w-10' : 'h-9 w-9'
+                  } ${active
                     ? 'bg-white/15 text-white'
                     : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-                }`}
+                  }`}
               >
                 <Icon size={collapsed ? 21 : 18} />
               </span>
@@ -735,11 +733,10 @@ function SettingsContent({
               key={lang.id}
               type="button"
               onClick={() => onUpdateSetting('language', lang.id)}
-              className={`flex w-full items-center justify-between rounded-2xl border p-4 text-left transition ${
-                selected
+              className={`flex w-full items-center justify-between rounded-2xl border p-4 text-left transition ${selected
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15'
                   : 'border-slate-200 hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5'
-              }`}
+                }`}
             >
               <div>
                 <h4 className="font-bold">{lang.label}</h4>
@@ -995,14 +992,12 @@ function Toggle({ checked, onChange }) {
     <button
       type="button"
       onClick={onChange}
-      className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-        checked ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'
-      }`}
+      className={`relative h-7 w-12 shrink-0 rounded-full transition ${checked ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'
+        }`}
     >
       <span
-        className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition ${
-          checked ? 'left-6' : 'left-1'
-        }`}
+        className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition ${checked ? 'left-6' : 'left-1'
+          }`}
       />
     </button>
   )

@@ -203,6 +203,20 @@ const updateMember = async (
 }
 
 
+const setAttendancePermission = async (
+  classroomId,
+  memberId,
+  canManageAttendance,
+) => {
+  const response = await apiClient.patch(
+    `/classrooms/${normalizeId(classroomId)}/members/${normalizeId(memberId)}/attendance-permission`,
+    { canManageAttendance },
+  )
+
+  return unwrap(response)
+}
+
+
 const deleteMember = async (
   classroomId,
   memberId,
@@ -1148,6 +1162,7 @@ export const classroomApi = {
   listMembers,
   addMember,
   updateMember,
+  setAttendancePermission,
   deleteMember,
 
   // Attendance

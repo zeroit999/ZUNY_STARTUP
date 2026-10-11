@@ -447,6 +447,8 @@ def serialize_course(row):
         or {}
     )
 
+    teacher = db.session.get(User, row.teacher_id) if row.teacher_id else None
+
     data.update({
         "id":
             str(row.id),
@@ -660,7 +662,11 @@ def serialize_course(row):
             or "",
 
         "teacherName":
-            row.teacher_name
+            (
+                teacher.full_name
+                if teacher and teacher.full_name
+                else row.teacher_name
+            )
             or "",
 
         "teacherSubject":
@@ -1099,8 +1105,7 @@ def apply_course_payload(
             "status",
         "moderationStatus":
             "moderation_status",
-        "studentCount":
-            "student_count",
+
         "rating":
             "rating",
         "ratingTotal":
@@ -1491,6 +1496,26 @@ def update_progress(
 
     row.progress_data = extra
     row.updated_at = now
+
+    db.session.flush()
+
+    course_row = db.session.get(Course, course_id)
+    if course_row is not None:
+        course_row.student_count = db.session.scalar(
+            db.select(db.func.count(db.distinct(LearningProgress.user_id)))
+            .select_from(LearningProgress)
+            .join(User, User.id == LearningProgress.user_id)
+            .where(
+                LearningProgress.course_id == course_id,
+                User.role == "STUDENT",
+                db.or_(
+                    LearningProgress.progress > 0,
+                    LearningProgress.watched_seconds > 0,
+                    LearningProgress.first_watched_at.is_not(None),
+                    LearningProgress.last_watched_at.is_not(None),
+                ),
+            )
+        ) or 0
 
     db.session.commit()
 

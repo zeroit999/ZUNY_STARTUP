@@ -1,6 +1,11 @@
 import os
 import uuid
 
+import io
+
+from PIL import Image, ImageOps, UnidentifiedImageError
+from werkzeug.datastructures import FileStorage
+
 from flask import Blueprint, jsonify, request
 
 from auth import auth_required
@@ -161,6 +166,134 @@ def get_profile_image_url(
         object_key,
         expires_in=3600,
     )
+
+
+
+@storage_bp.post("/profile/avatar")
+@auth_required
+def upload_profile_avatar():
+    uploaded_key = None
+    upload_started = False
+    committed = False
+
+    try:
+        user = get_current_user_for_update()
+        if not user:
+            return jsonify(success=False, error="Không tìm thấy tài khoản."), 404
+
+        uploaded = request.files.get("file")
+        if not uploaded or not uploaded.filename:
+            return jsonify(success=False, error="Thiếu ảnh đại diện."), 400
+
+        if uploaded.mimetype not in {
+            "image/jpeg", "image/png", "image/webp"
+        }:
+            return jsonify(success=False, error="Định dạng ảnh không hợp lệ."), 400
+
+        uploaded.stream.seek(0)
+        content = uploaded.stream.read(5 * 1024 * 1024 + 1)
+        if not content or len(content) > 5 * 1024 * 1024:
+            return jsonify(success=False, error="Ảnh phải nhỏ hơn hoặc bằng 5 MB."), 400
+
+        try:
+            with Image.open(io.BytesIO(content)) as original:
+                if original.format not in {"JPEG", "PNG", "WEBP"}:
+                    raise ValueError("Định dạng ảnh không hợp lệ.")
+                if original.width * original.height > 16_000_000:
+                    raise ValueError("Ảnh vượt quá 16 megapixel.")
+                original.verify()
+
+            with Image.open(io.BytesIO(content)) as original:
+                original = ImageOps.exif_transpose(original)
+                original.thumbnail((1024, 1024))
+                image = original.convert("RGB")
+                output = io.BytesIO()
+                image.save(output, format="JPEG", quality=88, optimize=True)
+        except (UnidentifiedImageError, ValueError, OSError, Image.DecompressionBombError):
+            return jsonify(success=False, error="File không phải ảnh hợp lệ."), 400
+
+        output.seek(0)
+        normalized = FileStorage(
+            stream=output,
+            filename="avatar.jpg",
+            content_type="image/jpeg",
+        )
+
+        uploaded_key = f"users/{user.id}/profile/avatar/{uuid.uuid4().hex}.jpg"
+
+        old_data = (
+            dict(user.profile_data)
+            if isinstance(user.profile_data, dict)
+            else {}
+        )
+        old_key = str(old_data.get("customAvatarKey") or "").strip()
+
+        avatar_url = build_public_url(uploaded_key)
+        if not avatar_url:
+            raise R2StorageError(
+                "Chưa cấu hình R2_PUBLIC_BASE_URL cho ảnh đại diện."
+            )
+
+        upload_started = True
+        upload_file_object(
+            normalized,
+            uploaded_key,
+            content_type="image/jpeg",
+            metadata={"user_id": user.id, "purpose": "profile_avatar"},
+        )
+
+        old_data.update({
+            "customAvatar": avatar_url,
+            "customAvatarKey": uploaded_key,
+            "customAvatarFileName": uploaded.filename,
+            "customAvatarContentType": "image/jpeg",
+            "customAvatarSize": output.getbuffer().nbytes,
+        })
+
+        user.profile_data = old_data
+        db.session.commit()
+        committed = True
+
+        avatar_prefix = f"users/{user.id}/profile/avatar/"
+
+        if (
+            old_key
+            and old_key != uploaded_key
+            and old_key.startswith(avatar_prefix)
+        ):
+            try:
+                delete_file(old_key)
+            except Exception as error:
+                print("R2 old avatar delete error:", error)
+
+        return jsonify(
+            success=True,
+            customAvatar=avatar_url,
+            user=user.to_dict(),
+        ), 200
+
+    except R2StorageError as error:
+        db.session.rollback()
+        print("R2 avatar error:", error)
+        return jsonify(
+            success=False,
+            error="Không thể lưu ảnh đại diện lên R2.",
+        ), 502
+
+    except Exception as error:
+        db.session.rollback()
+        print("Profile avatar error:", error)
+        return jsonify(
+            success=False,
+            error="Không thể cập nhật ảnh đại diện.",
+        ), 500
+
+    finally:
+        if uploaded_key and upload_started and not committed:
+            try:
+                delete_file(uploaded_key)
+            except Exception:
+                pass
 
 
 @storage_bp.post("/profile/cover")

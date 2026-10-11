@@ -1,3 +1,4 @@
+from werkzeug.exceptions import Forbidden
 import re
 import random
 from datetime import datetime, timezone
@@ -785,7 +786,7 @@ def assert_exam_owner_or_admin(
     ):
         return
 
-    raise Exception(
+    raise Forbidden(
         "Bạn không có quyền chỉnh sửa bài thi này"
     )
 
@@ -2679,6 +2680,19 @@ def update_exam(
     payload = dict(
         payload or {}
     )
+
+    # Chặn thay đổi các trường định danh qua API cập nhật.
+    for protected_key in (
+        "id",
+        "examId",
+        "teacherId",
+        "teacherEmail",
+        "teacherName",
+        "teacher_id",
+        "createdAt",
+        "updatedAt",
+    ):
+        payload.pop(protected_key, None)
 
     questions = payload.pop(
         "questions",

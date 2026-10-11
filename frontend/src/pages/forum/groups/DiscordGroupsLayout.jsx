@@ -97,7 +97,7 @@ const ROLE_BADGES = {
   student: { label: 'HS', bg: 'bg-slate-100 text-slate-600 dark:bg-slate-500/20 dark:text-slate-300', dot: 'bg-emerald-400' },
 }
 
-const EMOJI_LIST = ['😀','😂','😍','🥰','😎','🤔','😮','😢','😡','👍','👎','❤️','🔥','🎉','✅','❌','💯','🙏','👏','🤣']
+const EMOJI_LIST = ['😀', '😂', '😍', '🥰', '😎', '🤔', '😮', '😢', '😡', '👍', '👎', '❤️', '🔥', '🎉', '✅', '❌', '💯', '🙏', '👏', '🤣']
 
 // Check if a message content is emoji-only (for large rendering)
 const EMOJI_REGEX = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\uFE0F|\u200D|\u20E3)+$/u
@@ -218,11 +218,10 @@ function Pagination({ page, totalPages, onChange }) {
           key={p}
           type="button"
           onClick={() => onChange(p)}
-          className={`flex h-9 min-w-9 items-center justify-center rounded-xl px-2 text-xs font-black transition ${
-            p === page
-              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
-              : 'border border-slate-200 bg-white text-slate-500 hover:border-blue-300 hover:text-blue-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
-          }`}
+          className={`flex h-9 min-w-9 items-center justify-center rounded-xl px-2 text-xs font-black transition ${p === page
+            ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
+            : 'border border-slate-200 bg-white text-slate-500 hover:border-blue-300 hover:text-blue-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
+            }`}
         >
           {p}
         </button>
@@ -302,19 +301,19 @@ function PinnedMessagesPopup({ pinnedMessages, resolveUser = () => ({}), onClose
             })
 
             return (
-            <div key={msg.id} className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-400/20 dark:bg-white/5">
-              <div className="mb-2 flex items-center gap-2">
-                <ForumUserAvatar
-                  avatarUrl={syncedAuthor.avatarUrl}
-                  name={syncedAuthor.name}
-                  initials={syncedAuthor.initials}
-                  sizeClass="h-7 w-7"
-                />
-                <span className="text-sm font-black text-slate-950 dark:text-white">{syncedAuthor.name}</span>
-                <span className="text-xs text-slate-400 dark:text-slate-500">{formatRelativeTime(msg.createdAt)}</span>
+              <div key={msg.id} className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-400/20 dark:bg-white/5">
+                <div className="mb-2 flex items-center gap-2">
+                  <ForumUserAvatar
+                    avatarUrl={syncedAuthor.avatarUrl}
+                    name={syncedAuthor.name}
+                    initials={syncedAuthor.initials}
+                    sizeClass="h-7 w-7"
+                  />
+                  <span className="text-sm font-black text-slate-950 dark:text-white">{syncedAuthor.name}</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">{formatRelativeTime(msg.createdAt)}</span>
+                </div>
+                <p className="text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{msg.content}</p>
               </div>
-              <p className="text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{msg.content}</p>
-            </div>
             )
           })}
         </div>
@@ -333,11 +332,11 @@ function MemberListPopup({
   canManage = false,
   canKick = false,
   deputyPermissions = {},
-  onKick = () => {},
-  onPromote = () => {},
-  onRemoveDeputy = () => {},
-  onTransferOwner = () => {},
-  onUpdateDeputyPermission = () => {},
+  onKick = () => { },
+  onPromote = () => { },
+  onRemoveDeputy = () => { },
+  onTransferOwner = () => { },
+  onUpdateDeputyPermission = () => { },
   onClose,
 }) {
   const [page, setPage] = useState(1)
@@ -382,13 +381,12 @@ function MemberListPopup({
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-black text-slate-950 dark:text-white">{member.name}</p>
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
-              <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-black ${
-                isOwner
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200'
-                  : isDeputy
-                    ? 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200'
-                    : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300'
-              }`}>
+              <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-black ${isOwner
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200'
+                : isDeputy
+                  ? 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200'
+                  : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300'
+                }`}>
                 {isOwner ? 'Trưởng nhóm' : isDeputy ? 'Phó nhóm' : 'Thành viên'}
               </span>
               <span className={`text-[11px] font-bold ${online ? 'text-emerald-500' : 'text-slate-400 dark:text-slate-500'}`}>
@@ -714,7 +712,8 @@ function ImageLightbox({ image, onClose }) {
 }
 
 
-export default function DiscordGroupsLayout({ groups, currentUser, displayName, initials, avatarUrl = '', roleKey, userClass = '', initialActiveGroupId = '', onJoin, onDelete, onCreate, groupReports = [], onReportGroup = () => {}, onAdminJoinReportedGroup = () => {}, onChannelViewChange = () => {} }) {  const [activeGroupId, setActiveGroupId] = useState(null)
+export default function DiscordGroupsLayout({ groups, currentUser, displayName, initials, avatarUrl = '', roleKey, userClass = '', initialActiveGroupId = '', onJoin, onDelete, onCreate, groupReports = [], onReportGroup = () => { }, onAdminJoinReportedGroup = () => { }, onChannelViewChange = () => { } }) {
+  const [activeGroupId, setActiveGroupId] = useState(null)
 
   useEffect(() => {
     onChannelViewChange(Boolean(activeGroupId))
@@ -722,24 +721,45 @@ export default function DiscordGroupsLayout({ groups, currentUser, displayName, 
   }, [activeGroupId, onChannelViewChange])
   const [optimisticJoinedGroupIds, setOptimisticJoinedGroupIds] = useState([])
 
-useEffect(() => {
-  if (!initialActiveGroupId) return
+  useEffect(() => {
+    if (!initialActiveGroupId) return
 
-  const targetGroup = groups.find((group) => group.id === initialActiveGroupId)
-  if (!targetGroup) return
+    const targetGroup = groups.find((group) => group.id === initialActiveGroupId)
+    if (!targetGroup) return
 
-  const rawChannels = Array.isArray(targetGroup.channels) && targetGroup.channels.length
-    ? targetGroup.channels
-    : DEFAULT_CHANNELS
+    const rawChannels = Array.isArray(targetGroup.channels) && targetGroup.channels.length
+      ? targetGroup.channels
+      : DEFAULT_CHANNELS
 
-  const firstChannel = rawChannels
-    .map(normalizeChannel)
-    .filter(Boolean)[0]
+    const firstChannel = rawChannels
+      .map(normalizeChannel)
+      .filter(Boolean)[0]
 
-  setActiveGroupId(targetGroup.id)
-  setActiveChannelId(firstChannel?.id || 'thao-luan')
-}, [initialActiveGroupId, groups])
+    setActiveGroupId(targetGroup.id)
+    setActiveChannelId(firstChannel?.id || 'thao-luan')
+  }, [initialActiveGroupId, groups])
   const [activeChannelId, setActiveChannelId] = useState('thao-luan')
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const url = new URL(window.location.href)
+    if (activeGroupId) {
+      url.searchParams.set('group', activeGroupId)
+      url.searchParams.set('channel', activeChannelId || 'thao-luan')
+    } else {
+      url.searchParams.delete('group')
+      url.searchParams.delete('channel')
+    }
+
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`)
+  }, [activeGroupId, activeChannelId])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const requestedChannel = new URLSearchParams(window.location.search).get('channel')
+    if (requestedChannel) setActiveChannelId(requestedChannel)
+  }, [])
   const [textChannelsCollapsed, setTextChannelsCollapsed] = useState(false)
   const [settingsTextChannelsCollapsed, setSettingsTextChannelsCollapsed] = useState(false)
   const [messages, setMessages] = useState([])
@@ -837,6 +857,7 @@ useEffect(() => {
   const [deleteChannelConfirm, setDeleteChannelConfirm] = useState(null)
   const [leaveGroupConfirm, setLeaveGroupConfirm] = useState(false)
   const [mobileChannelSidebarOpen, setMobileChannelSidebarOpen] = useState(false)
+  const [desktopChannelSidebarHovered, setDesktopChannelSidebarHovered] = useState(false)
   // Member tooltip: { memberId, memberName, channelLabel } | null
   const [memberTooltip, setMemberTooltip] = useState(null)
   const memberTooltipTimeout = useRef(null)
@@ -1372,7 +1393,7 @@ useEffect(() => {
             if (prev[docId] === unread) return prev
             return { ...prev, [docId]: unread }
           })
-        }, () => {}))
+        }, () => { }))
       })
     })
 
@@ -1535,7 +1556,7 @@ useEffect(() => {
     }
 
     const writeOffline = () => {
-      updateDoc(presenceRef, { online: false, lastSeen: serverTimestamp() }).catch(() => {})
+      updateDoc(presenceRef, { online: false, lastSeen: serverTimestamp() }).catch(() => { })
     }
 
     writeOnline()
@@ -1778,16 +1799,16 @@ useEffect(() => {
     }
 
     if (!joined && !adminBypassReportedGroup && group.minGrade && group.minGrade !== 'none') {
-  const requiredRank = gradeRank(group.minGrade)
-  const userRank = ['teacher', 'admin', 'admin_dev'].includes(roleKey)
-    ? 40
-    : gradeRank(userClass)
+      const requiredRank = gradeRank(group.minGrade)
+      const userRank = ['teacher', 'admin', 'admin_dev'].includes(roleKey)
+        ? 40
+        : gradeRank(userClass)
 
-  if (requiredRank > 0 && userRank < requiredRank) {
-    toast.error('Bạn chưa đủ lớp học tối thiểu để tham gia nhóm này')
-    return
-  }
-}
+      if (requiredRank > 0 && userRank < requiredRank) {
+        toast.error('Bạn chưa đủ lớp học tối thiểu để tham gia nhóm này')
+        return
+      }
+    }
 
     if (!joined && !adminBypassReportedGroup && group.requireApproval) {
       await onJoin(group)
@@ -1815,44 +1836,44 @@ useEffect(() => {
   }
 
   // Leaving a group while inside it immediately returns to the groups hall
-const handleLeaveGroup = async () => {
-  if (activeGroup?.id) voluntaryLeavingGroupIdsRef.current.add(activeGroup.id)
-  if (!activeGroup) return
+  const handleLeaveGroup = async () => {
+    if (activeGroup?.id) voluntaryLeavingGroupIdsRef.current.add(activeGroup.id)
+    if (!activeGroup) return
 
-  if (activeGroup.ownerId === currentUser?.uid) {
-    toast.error('Bạn không thể rời nhóm khi bạn là trưởng nhóm. Hãy chuyển nhượng chức trưởng nhóm cho thành viên khác trước.')
-    return
+    if (activeGroup.ownerId === currentUser?.uid) {
+      toast.error('Bạn không thể rời nhóm khi bạn là trưởng nhóm. Hãy chuyển nhượng chức trưởng nhóm cho thành viên khác trước.')
+      return
+    }
+
+    if (leaveMessageSendingRef.current.has(activeGroup.id)) return
+    leaveMessageSendingRef.current.add(activeGroup.id)
+    leaveMessageSendingRef.current.delete(activeGroup.id)
+
+    setOptimisticJoinedGroupIds((prev) => prev.filter((groupId) => groupId !== activeGroup.id))
+
+    try {
+      const notificationSnapshot = await getDocs(
+        query(
+          collection(db, 'forumNotifications'),
+          where('toUserId', '==', currentUser?.uid || ''),
+          limit(300),
+        ),
+      )
+
+      const staleGroupNotifications = notificationSnapshot.docs.filter(
+        (notificationDoc) => notificationDoc.data()?.scope === 'group' && notificationDoc.data()?.groupId === activeGroup.id,
+      )
+
+      await Promise.all(staleGroupNotifications.map((notificationDoc) => deleteDoc(notificationDoc.ref)))
+    } catch (error) {
+      console.warn('Không thể dọn thông báo của nhóm đã rời:', error)
+    }
+
+    await onJoin(activeGroup)
+    setGroupMenuOpen(false)
+    setActiveGroupId(null)
+    setActiveChannelId('thao-luan')
   }
-
-  if (leaveMessageSendingRef.current.has(activeGroup.id)) return
-  leaveMessageSendingRef.current.add(activeGroup.id)
-  leaveMessageSendingRef.current.delete(activeGroup.id)
-
-  setOptimisticJoinedGroupIds((prev) => prev.filter((groupId) => groupId !== activeGroup.id))
-
-  try {
-    const notificationSnapshot = await getDocs(
-      query(
-        collection(db, 'forumNotifications'),
-        where('toUserId', '==', currentUser?.uid || ''),
-        limit(300),
-      ),
-    )
-
-    const staleGroupNotifications = notificationSnapshot.docs.filter(
-      (notificationDoc) => notificationDoc.data()?.scope === 'group' && notificationDoc.data()?.groupId === activeGroup.id,
-    )
-
-    await Promise.all(staleGroupNotifications.map((notificationDoc) => deleteDoc(notificationDoc.ref)))
-  } catch (error) {
-    console.warn('Không thể dọn thông báo của nhóm đã rời:', error)
-  }
-
-  await onJoin(activeGroup)
-  setGroupMenuOpen(false)
-  setActiveGroupId(null)
-  setActiveChannelId('thao-luan')
-}
 
   const confirmPrivateJoin = () => {
     if (!joinPasswordModal) return
@@ -2198,7 +2219,7 @@ const handleLeaveGroup = async () => {
     try {
       const messagesSnapshot = await getDocs(collection(db, 'forumGroupChats', deletedDocId, 'messages'))
       await Promise.all(messagesSnapshot.docs.map((messageDoc) => deleteDoc(messageDoc.ref)))
-      await deleteDoc(doc(db, 'forumGroupChats', deletedDocId)).catch(() => {})
+      await deleteDoc(doc(db, 'forumGroupChats', deletedDocId)).catch(() => { })
       await saveChannels(nextChannels)
 
       setUnreadCounts((prev) => {
@@ -2435,11 +2456,10 @@ const handleLeaveGroup = async () => {
                         type="button"
                         onClick={(event) => togglePinGroup(group, event)}
                         title={pinned ? 'Bỏ ghim nhóm' : 'Ghim nhóm'}
-                        className={`flex h-7 w-7 items-center justify-center rounded-full backdrop-blur transition ${
-                          pinned
-                            ? 'bg-amber-300 text-amber-950 shadow-lg shadow-amber-400/30'
-                            : 'bg-white/15 text-white hover:bg-white/25'
-                        }`}
+                        className={`flex h-7 w-7 items-center justify-center rounded-full backdrop-blur transition ${pinned
+                          ? 'bg-amber-300 text-amber-950 shadow-lg shadow-amber-400/30'
+                          : 'bg-white/15 text-white hover:bg-white/25'
+                          }`}
                       >
                         <Pin className={`h-3.5 w-3.5 ${pinned ? 'fill-current' : ''}`} />
                       </button>
@@ -2492,12 +2512,12 @@ const handleLeaveGroup = async () => {
                     </div>
                     <div className="mt-5 flex flex-wrap gap-2">
                       {(Array.isArray(group.tags)
-                          ? group.tags
-                          : String(group.tags || '')
-                              .split(',')
-                              .map((tag) => tag.trim())
-                              .filter(Boolean)
-                        ).slice(0, 4).map((tag) => (
+                        ? group.tags
+                        : String(group.tags || '')
+                          .split(',')
+                          .map((tag) => tag.trim())
+                          .filter(Boolean)
+                      ).slice(0, 4).map((tag) => (
                         <span key={tag} className="rounded-full px-3 py-1.5 text-sm font-bold" style={{ backgroundColor: `${tagColor}1f`, color: tagColor }}>{tag}</span>
                       ))}
                     </div>
@@ -2585,13 +2605,13 @@ const handleLeaveGroup = async () => {
   const joined = (activeGroup.memberIds || []).includes(currentUser?.uid)
   const canDeleteGroup = canManageActiveGroup
   const groupSettingsTabs = ([
-    ['overview','Tổng quan','👥'],
-    ['privacy','Cấu hình nhóm', groupSettingsForm.groupType === 'invite_only' ? '✉️' : groupSettingsForm.groupType === 'private' ? '🔒' : '🌍'],
-    ['channels','Kênh','#️⃣'],
-    ...(canApproveInActiveGroup ? [['approval',`Duyệt (${(activeGroup?.pendingMemberIds || []).length})`,'✅']] : []),
-    ['members','Thành viên','👥'],
-    ['invite','Mời bạn bè','✉️'],
-    ...(canSeeAdvancedGroupSettings ? [['appearance','Giao diện','🎨'],['system','Dữ liệu hệ thống','🧩']] : []),
+    ['overview', 'Tổng quan', '👥'],
+    ['privacy', 'Cấu hình nhóm', groupSettingsForm.groupType === 'invite_only' ? '✉️' : groupSettingsForm.groupType === 'private' ? '🔒' : '🌍'],
+    ['channels', 'Kênh', '#️⃣'],
+    ...(canApproveInActiveGroup ? [['approval', `Duyệt (${(activeGroup?.pendingMemberIds || []).length})`, '✅']] : []),
+    ['members', 'Thành viên', '👥'],
+    ['invite', 'Mời bạn bè', '✉️'],
+    ...(canSeeAdvancedGroupSettings ? [['appearance', 'Giao diện', '🎨'], ['system', 'Dữ liệu hệ thống', '🧩']] : []),
   ])
 
   const groupColor = activeGroup.color?.includes('from-') ? activeGroup.color : 'from-sky-500 to-blue-600'
@@ -2627,9 +2647,9 @@ const handleLeaveGroup = async () => {
 
   const channelDescription =
     activeChannel?.type === 'chat' ? 'Đặt câu hỏi, trao đổi bài tập và cùng nhau giải quyết vấn đề học tập.'
-    : activeChannel?.type === 'files' ? 'Chia sẻ tài liệu, link học tập, đề ôn thi và ghi chú quan trọng.'
-    : activeChannel?.type === 'announce' ? 'Nơi đăng thông báo quan trọng để mọi thành viên không bỏ lỡ.'
-    : 'Thông tin nền tảng giúp nhóm học hoạt động rõ ràng và có tổ chức.'
+      : activeChannel?.type === 'files' ? 'Chia sẻ tài liệu, link học tập, đề ôn thi và ghi chú quan trọng.'
+        : activeChannel?.type === 'announce' ? 'Nơi đăng thông báo quan trọng để mọi thành viên không bỏ lỡ.'
+          : 'Thông tin nền tảng giúp nhóm học hoạt động rõ ràng và có tổ chức.'
 
   const availablePresetChannels = ALL_POSSIBLE_CHANNELS.filter((preset) => !DISCORD_CHANNELS.some((ch) => ch.id === preset.id))
 
@@ -2639,7 +2659,7 @@ const handleLeaveGroup = async () => {
   }
 
   return (
-    <div className="relative flex h-[100dvh] max-h-[100dvh] min-h-0 flex-1 overflow-hidden bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
+    <div className="relative flex h-full max-h-full min-h-0 flex-1 overflow-hidden bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
       {/* Group avatar sidebar */}
       <div className="hidden w-[72px] shrink-0 flex-col items-center gap-2 overflow-y-auto border-r border-slate-200 bg-white py-3 dark:border-white/10 dark:bg-slate-950 lg:flex">
         <button type="button" title="Khám phá nhóm" onClick={() => { setGroupMenuOpen(false); setGroupSettingsOpen(false); setActiveGroupId(null); setActiveChannelId('thao-luan') }} className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-xl text-white shadow-lg transition hover:rounded-[14px]">🌍</button>
@@ -2680,16 +2700,70 @@ const handleLeaveGroup = async () => {
           type="button"
           aria-label="Đóng danh sách kênh"
           onClick={() => setMobileChannelSidebarOpen(false)}
-          className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-[115] bg-slate-950/60 backdrop-blur-sm lg:hidden"
         />
       )}
 
       {/* Channel sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 flex w-[min(88vw,350px)] shrink-0 flex-col border-r border-slate-200 bg-white shadow-2xl transition-transform duration-300 dark:border-white/10 dark:bg-slate-900 lg:static lg:z-auto lg:w-[320px] lg:translate-x-0 lg:shadow-none xl:w-[350px] ${mobileChannelSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900">
-          <div className="relative flex h-[88px] items-center gap-3 px-4">
+      <div onMouseEnter={() => setDesktopChannelSidebarHovered(true)}
+        onMouseLeave={() => setDesktopChannelSidebarHovered(false)}
+        className={`fixed inset-y-0 left-0 z-[120] flex w-[min(88vw,350px)] shrink-0 flex-col border-r border-slate-200 bg-white shadow-2xl transition-[width,transform] duration-300 dark:border-white/10 dark:bg-slate-900 lg:absolute lg:inset-y-0 lg:left-[72px] lg:z-30 lg:translate-x-0 lg:shadow-xl ${desktopChannelSidebarHovered ? 'lg:w-[320px] xl:w-[350px]' : 'lg:w-[72px]'} ${mobileChannelSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        {/* Desktop compact channel navigation */}
+        <div className={`hidden flex-col items-center gap-2 overflow-y-auto py-3 ${
+          desktopChannelSidebarHovered ? 'lg:hidden' : 'lg:flex'
+        }`}>
+          <button
+            type="button"
+            title={activeGroup.name}
+            aria-label={`Mở danh sách kênh của ${activeGroup.name}`}
+            onClick={() => setDesktopChannelSidebarHovered(true)}
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-2xl transition hover:bg-blue-100 dark:bg-white/10"
+          >
+            {activeGroup.emoji || '🏆'}
+          </button>
+          <div className="my-1 h-px w-8 shrink-0 bg-slate-200 dark:bg-white/10" />
+          {textChannels.map((ch) => (
+            <button
+              key={ch.id}
+              type="button"
+              title={ch.label}
+              aria-label={`Kênh ${ch.label}`}
+              onClick={() => {
+                setActiveChannelId(ch.id)
+                setDesktopChannelSidebarHovered(true)
+              }}
+              className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl transition ${
+                activeChannelId === ch.id
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'
+                  : 'text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10'
+              }`}
+            >
+              {ch.icon || '#'}
+              {(unreadCounts[`${activeGroupId}_${ch.id}`] || 0) > 0 && activeChannelId !== ch.id && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white">
+                  {Math.min(unreadCounts[`${activeGroupId}_${ch.id}`], 99)}
+                </span>
+              )}
+            </button>
+          ))}
+          {joined && !isActiveGroupOwner && (
+            <button
+              type="button"
+              title="Rời nhóm"
+              aria-label="Rời nhóm"
+              onClick={() => setLeaveGroupConfirm(true)}
+              className="mt-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+        <div className={`border-b border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900 ${
+          desktopChannelSidebarHovered ? '' : 'lg:hidden'
+        }`}>
+          <div className={`relative flex h-[88px] items-center gap-3 ${desktopChannelSidebarHovered ? "px-4" : "px-2 lg:justify-center"}`}>
             <div className="text-3xl">{activeGroup.emoji || '🏆'}</div>
-            <div className="min-w-0 flex-1">
+            <div className={`min-w-0 flex-1 ${desktopChannelSidebarHovered ? "" : "lg:hidden"}`}>
               <h3 className="truncate text-xl font-black text-slate-950 dark:text-white">{activeGroup.name}</h3>
               <p className="mt-1 font-mono text-[11px] font-black tracking-wider text-slate-400 dark:text-slate-500">{activeGroup.groupCode || 'NO-CODE'}</p>
             </div>
@@ -2712,31 +2786,31 @@ const handleLeaveGroup = async () => {
                   <button type="button" onClick={() => { setGroupSettingsOpen(true); setGroupSettingsTab('approval'); setGroupMenuOpen(false) }} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"><Users className="h-4 w-4" />Duyệt thành viên</button>
                 )}
                 {/* Chỉ phó nhóm và thành viên mới được rời nhóm */}
-{joined && !isActiveGroupOwner && (
-  <button
-    type="button"
-    onClick={() => { setLeaveGroupConfirm(true); setGroupMenuOpen(false) }}
-    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
-  >
-    <X className="h-4 w-4" />
-    Rời nhóm
-  </button>
-)}
+                {joined && !isActiveGroupOwner && (
+                  <button
+                    type="button"
+                    onClick={() => { setLeaveGroupConfirm(true); setGroupMenuOpen(false) }}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
+                  >
+                    <X className="h-4 w-4" />
+                    Rời nhóm
+                  </button>
+                )}
 
-{/* Chỉ trưởng nhóm (và admin nếu logic canDeleteGroup của bạn có bao gồm) mới thấy nút xóa */}
-{canDeleteGroup && (
-  <button
-    type="button"
-    onClick={() => {
-      onDelete(activeGroup)
-      setGroupMenuOpen(false)
-    }}
-    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-black text-rose-500 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-300"
-  >
-    <Trash2 className="h-4 w-4" />
-    Xóa nhóm
-  </button>
-)}
+                {/* Chỉ trưởng nhóm (và admin nếu logic canDeleteGroup của bạn có bao gồm) mới thấy nút xóa */}
+                {canDeleteGroup && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onDelete(activeGroup)
+                      setGroupMenuOpen(false)
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-black text-rose-500 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-300"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Xóa nhóm
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -2750,7 +2824,9 @@ const handleLeaveGroup = async () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-3">
+        <div className={`flex-1 overflow-y-auto p-3 ${
+          desktopChannelSidebarHovered ? '' : 'lg:hidden'
+        }`}>
           <div className="mb-2 mt-3 space-y-3">
             <div>
               <button type="button" onClick={() => setTextChannelsCollapsed((value) => !value)} className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-black uppercase tracking-[0.14em] text-slate-400 transition hover:bg-slate-50 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-white/5 dark:hover:text-slate-200">
@@ -2794,7 +2870,9 @@ const handleLeaveGroup = async () => {
           </div>
         </div>
 
-        <div className="border-t border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-slate-900">
+        <div className={`border-t border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-slate-900 ${
+          desktopChannelSidebarHovered ? '' : 'lg:hidden'
+        }`}>
           <div className="flex items-center gap-3">
             <ForumUserAvatar avatarUrl={avatarUrl} name={displayName} initials={initials} sizeClass="h-12 w-12">
               <span className="absolute -bottom-0.5 -right-0.5 z-10 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-400 shadow-sm dark:border-slate-900" />
@@ -2809,7 +2887,7 @@ const handleLeaveGroup = async () => {
       </div>
 
       {/* Main chat */}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-slate-950">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-slate-950 lg:ml-[72px]">
         {/* Channel header */}
         <div className="flex h-[64px] shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-3 dark:border-white/10 dark:bg-slate-950 sm:h-[72px] sm:gap-4 sm:px-5 lg:px-6">
           <button type="button" onClick={() => setMobileChannelSidebarOpen(true)} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-blue-50 hover:text-blue-600 dark:bg-white/10 dark:text-slate-200 lg:hidden" aria-label="Mở danh sách kênh"><Menu className="h-5 w-5" /></button>
@@ -2851,335 +2929,335 @@ const handleLeaveGroup = async () => {
             </button>
             <button type="button" title="Cảnh báo / báo cáo nhóm" onClick={() => openGroupReportModal(activeGroup)} className="transition hover:text-amber-600 dark:hover:text-amber-300"><Flag className="hidden h-5 w-5 sm:block sm:h-6 sm:w-6" /></button>
             <button type="button" title="Cài đặt nhóm" onClick={() => { setGroupSettingsTab('overview'); setGroupSettingsOpen(true) }} className="transition hover:text-slate-900 dark:hover:text-white"><Settings className="hidden h-5 w-5 sm:block sm:h-6 sm:w-6" /></button>
-            
+
           </div>
         </div>
 
         <>
-        {/* Messages */}
-        <div className="min-h-0 flex-1 overflow-y-auto" style={{ height: 0 }}>
-          {messages.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center px-4 text-center sm:px-8">
-              <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] bg-slate-50 text-5xl shadow-sm dark:bg-white/5 dark:shadow-black/20">{activeChannel?.icon}</div>
-              <h1 className="text-2xl font-black text-slate-950 dark:text-white sm:text-4xl">Chào mừng đến #{activeChannel?.label}</h1>
-              <p className="mt-4 max-w-2xl text-sm font-bold leading-7 text-slate-500 dark:text-slate-400 sm:text-base">{channelDescription}</p>
-            </div>
-          ) : (
-            <div className="px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
-              <div className="space-y-5">
-                {msgGroups.map((group) => {
-                  if (group.system) {
-                    const systemMsg = group.msgs[0]
-                    return (
-                      <div key={systemMsg.id} className="flex justify-center px-3 py-1">
-                        <span className="rounded-full border border-slate-200 bg-slate-100 px-4 py-1.5 text-xs font-black text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
-                          {systemMsg.content}
-                        </span>
-                      </div>
-                    )
-                  }
-
-                  const AuthorRoleBadge = ROLE_BADGES[group.author.authorRole] || ROLE_BADGES.student
-                  return (
-                    <div key={group.author.id} className="group/message flex gap-4 rounded-2xl px-3 py-2 transition hover:bg-slate-50 dark:hover:bg-white/[0.025]">
-                      {(() => {
-                        const syncedAuthorProfile = group.author.authorId === currentUser?.uid
-                          ? { avatarUrl, name: displayName, initials }
-                          : memberProfiles[group.author.authorId]
-                        const syncedAvatarUrl =
-                          syncedAuthorProfile?.avatarUrl ||
-                          group.author.authorPhotoURL ||
-                          group.author.avatarUrl ||
-                          ''
-                        const syncedAuthorName = syncedAuthorProfile?.name || group.author.authorName || 'Thành viên'
-                        const syncedInitials = syncedAuthorProfile?.initials || group.author.authorInitials || getInitials(syncedAuthorName)
-
-                        return (
-                          <ForumUserAvatar
-                            avatarUrl={syncedAvatarUrl}
-                            name={syncedAuthorName}
-                            initials={syncedInitials}
-                            sizeClass="h-12 w-12"
-                            className="shadow-lg shadow-blue-500/10"
-                          />
-                        )
-                      })()}
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-1 flex flex-wrap items-center gap-2">
-                          <span className="text-base font-black text-slate-950 dark:text-white">{(group.author.authorId === currentUser?.uid ? displayName : memberProfiles[group.author.authorId]?.name) || group.author.authorName || 'Thành viên'}</span>
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${AuthorRoleBadge.bg}`}>{AuthorRoleBadge.label}</span>
-                          <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">{formatRelativeTime(group.author.createdAt)}</span>
+          {/* Messages */}
+          <div className="min-h-0 flex-1 overflow-y-auto" style={{ height: 0 }}>
+            {messages.length === 0 ? (
+              <div className="flex h-full flex-col items-center justify-center px-4 text-center sm:px-8">
+                <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] bg-slate-50 text-5xl shadow-sm dark:bg-white/5 dark:shadow-black/20">{activeChannel?.icon}</div>
+                <h1 className="text-2xl font-black text-slate-950 dark:text-white sm:text-4xl">Chào mừng đến #{activeChannel?.label}</h1>
+                <p className="mt-4 max-w-2xl text-sm font-bold leading-7 text-slate-500 dark:text-slate-400 sm:text-base">{channelDescription}</p>
+              </div>
+            ) : (
+              <div className="px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
+                <div className="space-y-5">
+                  {msgGroups.map((group) => {
+                    if (group.system) {
+                      const systemMsg = group.msgs[0]
+                      return (
+                        <div key={systemMsg.id} className="flex justify-center px-3 py-1">
+                          <span className="rounded-full border border-slate-200 bg-slate-100 px-4 py-1.5 text-xs font-black text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
+                            {systemMsg.content}
+                          </span>
                         </div>
-                        <div className="space-y-1">
-                          {group.msgs.map((msg) => {
-                            const isPinned = (pinnedMsgIds[activeDocId] || []).includes(msg.id)
-                            const msgReactionMap = msg.reactions || {}
-                            const reactionSummary = Object.entries(
-                              Object.values(msgReactionMap).reduce((acc, emoji) => { acc[emoji] = (acc[emoji] || 0) + 1; return acc }, {})
-                            )
-                            return (
-                              <div key={msg.id} className="group/item relative rounded-xl px-0 py-0.5" onMouseLeave={() => { if (reactionPickerMsgId === msg.id) setReactionPickerMsgId(null) }}>
-                                {/* Reply context — styled like the Hall's threaded replies */}
-                                {msg.replyToId && (
-                                  <div className="mb-1 flex items-center gap-2 border-l-2 border-blue-300 pl-3 dark:border-blue-500/40">
-                                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-black text-blue-600 dark:bg-blue-500/15 dark:text-blue-200">Trả lời</span>
-                                    <span className="text-xs font-bold text-blue-600 dark:text-blue-300">{msg.replyToAuthor}</span>
-                                    <span className="line-clamp-1 text-xs text-slate-500 dark:text-slate-400">{msg.replyToContent}</span>
-                                  </div>
-                                )}
-                                {isPinned && (
-                                  <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:bg-amber-400/15 dark:text-amber-300"><Pin className="h-3 w-3" />Đã ghim</span>
-                                )}
-                                {/* Message content: large if emoji-only, otherwise normal */}
-                                {editingMsg?.msgId === msg.id ? (
-                                  <div className="flex items-center gap-2">
-                                    <input
-                                      autoFocus
-                                      value={editingContent}
-                                      onChange={(e) => setEditingContent(e.target.value)}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commitEditMessage(msg) }
-                                        if (e.key === 'Escape') { setEditingMsg(null); setEditingContent('') }
-                                      }}
-                                      className="min-w-0 flex-1 rounded-xl border border-blue-300 bg-blue-50/40 px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-blue-400 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-white"
-                                    />
-                                    <button type="button" onClick={() => commitEditMessage(msg)} className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-black text-white hover:bg-blue-700">Lưu</button>
-                                    <button type="button" onClick={() => { setEditingMsg(null); setEditingContent('') }} className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-200">Hủy</button>
-                                  </div>
-                                ) : isAnnouncementMessage(msg) ? (
-                                  <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-amber-800 shadow-sm dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
-                                    <div className="mb-1 flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em]">
-                                      <Bell className="h-4 w-4" />
-                                      Thông báo nhóm
+                      )
+                    }
+
+                    const AuthorRoleBadge = ROLE_BADGES[group.author.authorRole] || ROLE_BADGES.student
+                    return (
+                      <div key={group.author.id} className="group/message flex gap-4 rounded-2xl px-3 py-2 transition hover:bg-slate-50 dark:hover:bg-white/[0.025]">
+                        {(() => {
+                          const syncedAuthorProfile = group.author.authorId === currentUser?.uid
+                            ? { avatarUrl, name: displayName, initials }
+                            : memberProfiles[group.author.authorId]
+                          const syncedAvatarUrl =
+                            syncedAuthorProfile?.avatarUrl ||
+                            group.author.authorPhotoURL ||
+                            group.author.avatarUrl ||
+                            ''
+                          const syncedAuthorName = syncedAuthorProfile?.name || group.author.authorName || 'Thành viên'
+                          const syncedInitials = syncedAuthorProfile?.initials || group.author.authorInitials || getInitials(syncedAuthorName)
+
+                          return (
+                            <ForumUserAvatar
+                              avatarUrl={syncedAvatarUrl}
+                              name={syncedAuthorName}
+                              initials={syncedInitials}
+                              sizeClass="h-12 w-12"
+                              className="shadow-lg shadow-blue-500/10"
+                            />
+                          )
+                        })()}
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-1 flex flex-wrap items-center gap-2">
+                            <span className="text-base font-black text-slate-950 dark:text-white">{(group.author.authorId === currentUser?.uid ? displayName : memberProfiles[group.author.authorId]?.name) || group.author.authorName || 'Thành viên'}</span>
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${AuthorRoleBadge.bg}`}>{AuthorRoleBadge.label}</span>
+                            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">{formatRelativeTime(group.author.createdAt)}</span>
+                          </div>
+                          <div className="space-y-1">
+                            {group.msgs.map((msg) => {
+                              const isPinned = (pinnedMsgIds[activeDocId] || []).includes(msg.id)
+                              const msgReactionMap = msg.reactions || {}
+                              const reactionSummary = Object.entries(
+                                Object.values(msgReactionMap).reduce((acc, emoji) => { acc[emoji] = (acc[emoji] || 0) + 1; return acc }, {})
+                              )
+                              return (
+                                <div key={msg.id} className="group/item relative rounded-xl px-0 py-0.5" onMouseLeave={() => { if (reactionPickerMsgId === msg.id) setReactionPickerMsgId(null) }}>
+                                  {/* Reply context — styled like the Hall's threaded replies */}
+                                  {msg.replyToId && (
+                                    <div className="mb-1 flex items-center gap-2 border-l-2 border-blue-300 pl-3 dark:border-blue-500/40">
+                                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-black text-blue-600 dark:bg-blue-500/15 dark:text-blue-200">Trả lời</span>
+                                      <span className="text-xs font-bold text-blue-600 dark:text-blue-300">{msg.replyToAuthor}</span>
+                                      <span className="line-clamp-1 text-xs text-slate-500 dark:text-slate-400">{msg.replyToContent}</span>
                                     </div>
-                                    <p className="whitespace-pre-wrap break-words text-[15px] font-black leading-7">
-                                      {msg.content}
-                                      {msg.edited && <span className="ml-1 text-[10px] font-bold opacity-70">(đã sửa)</span>}
-                                    </p>
-                                  </div>
-                                ) : msg.messageType === 'image' && msg.fileUrl ? (
-                                  <div className="space-y-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => setZoomedImage({ url: msg.fileUrl, fileName: msg.fileName || 'image' })}
-                                      className="group/image relative inline-block max-w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10"
-                                    >
-                                      <img src={msg.fileUrl} alt={msg.fileName || 'Hình ảnh'} className="max-h-80 max-w-full object-contain transition group-hover/image:brightness-90" />
-                                      <span
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={(event) => {
-                                          event.stopPropagation()
-                                          downloadFileFromUrl(msg.fileUrl, msg.fileName || 'image')
+                                  )}
+                                  {isPinned && (
+                                    <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:bg-amber-400/15 dark:text-amber-300"><Pin className="h-3 w-3" />Đã ghim</span>
+                                  )}
+                                  {/* Message content: large if emoji-only, otherwise normal */}
+                                  {editingMsg?.msgId === msg.id ? (
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        autoFocus
+                                        value={editingContent}
+                                        onChange={(e) => setEditingContent(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commitEditMessage(msg) }
+                                          if (e.key === 'Escape') { setEditingMsg(null); setEditingContent('') }
                                         }}
-                                        onKeyDown={(event) => {
-                                          if (event.key === 'Enter' || event.key === ' ') {
-                                            event.preventDefault()
+                                        className="min-w-0 flex-1 rounded-xl border border-blue-300 bg-blue-50/40 px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-blue-400 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-white"
+                                      />
+                                      <button type="button" onClick={() => commitEditMessage(msg)} className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-black text-white hover:bg-blue-700">Lưu</button>
+                                      <button type="button" onClick={() => { setEditingMsg(null); setEditingContent('') }} className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-200">Hủy</button>
+                                    </div>
+                                  ) : isAnnouncementMessage(msg) ? (
+                                    <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-amber-800 shadow-sm dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
+                                      <div className="mb-1 flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em]">
+                                        <Bell className="h-4 w-4" />
+                                        Thông báo nhóm
+                                      </div>
+                                      <p className="whitespace-pre-wrap break-words text-[15px] font-black leading-7">
+                                        {msg.content}
+                                        {msg.edited && <span className="ml-1 text-[10px] font-bold opacity-70">(đã sửa)</span>}
+                                      </p>
+                                    </div>
+                                  ) : msg.messageType === 'image' && msg.fileUrl ? (
+                                    <div className="space-y-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => setZoomedImage({ url: msg.fileUrl, fileName: msg.fileName || 'image' })}
+                                        className="group/image relative inline-block max-w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10"
+                                      >
+                                        <img src={msg.fileUrl} alt={msg.fileName || 'Hình ảnh'} className="max-h-80 max-w-full object-contain transition group-hover/image:brightness-90" />
+                                        <span
+                                          role="button"
+                                          tabIndex={0}
+                                          onClick={(event) => {
                                             event.stopPropagation()
                                             downloadFileFromUrl(msg.fileUrl, msg.fileName || 'image')
-                                          }
-                                        }}
-                                        className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-slate-950/55 text-white opacity-80 shadow-lg backdrop-blur transition hover:bg-slate-950/75 md:opacity-0 md:group-hover/image:opacity-100"
-                                        title="Tải ảnh"
-                                      >
-                                        <Download className="h-4 w-4" />
-                                      </span>
-                                    </button>
-                                    <p className="text-xs font-bold text-slate-400">{msg.fileName || msg.content}</p>
-                                  </div>
-                                ) : msg.messageType === 'file' && msg.fileUrl ? (
-                                  <a href={msg.fileUrl} download={msg.fileName || true} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-700 transition hover:border-blue-300 hover:text-blue-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-blue-400/50 dark:hover:text-blue-200">
-                                    <Paperclip className="h-5 w-5 shrink-0 text-emerald-500" />
-                                    <span className="truncate">{msg.fileName || msg.content || 'Tệp đính kèm'}</span>
-                                  </a>
-                                ) : isEmojiOnly(msg.content) ? (
-                                  <p className="select-text text-5xl leading-tight">
-                                    {msg.content}
-                                    {msg.edited && <span className="ml-2 align-middle text-[10px] font-bold text-slate-400 dark:text-slate-500">(đã sửa)</span>}
-                                  </p>
-                                ) : (
-                                  <p className="whitespace-pre-wrap break-words text-[15px] font-medium leading-7 text-slate-700 dark:text-slate-200">
-                                    {msg.content}
-                                    {msg.edited && <span className="ml-1 text-[10px] font-bold text-slate-400 dark:text-slate-500">(đã sửa)</span>}
-                                  </p>
-                                )}
-                                {/* Reactions display */}
-                                {reactionSummary.length > 0 && (
-                                  <div className="mt-1 flex flex-wrap gap-1">
-                                    {reactionSummary.map(([emoji, count]) => {
-                                      const myReaction = msgReactionMap[currentUser?.uid]
-                                      return (
-                                        <button key={emoji} type="button" onClick={() => reactToMessage(msg, emoji)}
-                                          className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-bold transition ${myReaction === emoji ? 'border-blue-300 bg-blue-50 text-blue-700 dark:border-sky-400 dark:bg-sky-500/20 dark:text-sky-200' : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-white/20'}`}
+                                          }}
+                                          onKeyDown={(event) => {
+                                            if (event.key === 'Enter' || event.key === ' ') {
+                                              event.preventDefault()
+                                              event.stopPropagation()
+                                              downloadFileFromUrl(msg.fileUrl, msg.fileName || 'image')
+                                            }
+                                          }}
+                                          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-slate-950/55 text-white opacity-80 shadow-lg backdrop-blur transition hover:bg-slate-950/75 md:opacity-0 md:group-hover/image:opacity-100"
+                                          title="Tải ảnh"
                                         >
-                                          {emoji} <span>{count}</span>
-                                        </button>
-                                      )
-                                    })}
-                                  </div>
-                                )}
-                                {/* Inline reply form — appears directly under the message, like the Hall */}
-                                {replyTo?.msgId === msg.id && (
-                                  <form onSubmit={submitReply} className="mt-2 flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50/60 p-2 dark:border-blue-500/20 dark:bg-blue-500/10">
-                                    <input
-                                      ref={replyInputRef}
-                                      value={replyText}
-                                      onChange={(e) => setReplyText(e.target.value)}
-                                      placeholder={`Trả lời ${msg.authorName || 'thành viên'}...`}
-                                      className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-blue-400 dark:border-white/10 dark:bg-slate-900 dark:text-white"
-                                    />
-                                    <button type="button" onClick={() => { setReplyTo(null); setReplyText('') }} className="rounded-xl px-3 py-2 text-xs font-black text-slate-400 hover:bg-white dark:hover:bg-white/10">Hủy</button>
-                                    <button type="submit" className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-black text-white hover:bg-blue-700">Gửi</button>
-                                  </form>
-                                )}
-                                {/* Hover toolbar */}
-                                <div className="absolute -right-1 -top-1 hidden items-center overflow-visible rounded-xl border border-slate-200 bg-white shadow-xl group-hover/item:flex dark:border-white/10 dark:bg-slate-900">
-                                  <button type="button" onClick={() => reactToMessage(msg, '👍')} className="px-2 py-1.5 text-xs font-black text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white" title="Thích">👍</button>
-
-                                  <div className="relative">
-                                    <button type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        setMessageMoreMenuId(null)
-                                        setReactionPickerMsgId(msg.id)
-                                      }}
-                                      className="px-2 py-1.5 text-xs font-black text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white" title="Cảm xúc">🙂</button>
-                                    {reactionPickerMsgId === msg.id && (
-                                      <ReactionPicker onSelect={(emoji) => reactToMessage(msg, emoji)} onClose={() => setReactionPickerMsgId(null)} />
-                                    )}
-                                  </div>
-
-                                  {!msg.replyToId && (
-                                    <button type="button" onClick={() => replyToMember(msg)} className="px-2 py-1.5 text-xs font-black text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white" title="Trả lời">↩</button>
+                                          <Download className="h-4 w-4" />
+                                        </span>
+                                      </button>
+                                      <p className="text-xs font-bold text-slate-400">{msg.fileName || msg.content}</p>
+                                    </div>
+                                  ) : msg.messageType === 'file' && msg.fileUrl ? (
+                                    <a href={msg.fileUrl} download={msg.fileName || true} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-700 transition hover:border-blue-300 hover:text-blue-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-blue-400/50 dark:hover:text-blue-200">
+                                      <Paperclip className="h-5 w-5 shrink-0 text-emerald-500" />
+                                      <span className="truncate">{msg.fileName || msg.content || 'Tệp đính kèm'}</span>
+                                    </a>
+                                  ) : isEmojiOnly(msg.content) ? (
+                                    <p className="select-text text-5xl leading-tight">
+                                      {msg.content}
+                                      {msg.edited && <span className="ml-2 align-middle text-[10px] font-bold text-slate-400 dark:text-slate-500">(đã sửa)</span>}
+                                    </p>
+                                  ) : (
+                                    <p className="whitespace-pre-wrap break-words text-[15px] font-medium leading-7 text-slate-700 dark:text-slate-200">
+                                      {msg.content}
+                                      {msg.edited && <span className="ml-1 text-[10px] font-bold text-slate-400 dark:text-slate-500">(đã sửa)</span>}
+                                    </p>
                                   )}
-
-                                  {msg.authorId === currentUser?.uid && (
-                                    <button type="button" onClick={() => startEditMessage(msg)} className="px-2 py-1.5 text-xs font-black text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white" title="Chỉnh sửa">✏️</button>
-                                  )}
-
-                                  {(msg.messageType === 'image' || msg.messageType === 'file') && msg.fileUrl && (
-                                    <button
-                                      type="button"
-                                      onClick={(event) => {
-                                        event.stopPropagation()
-                                        downloadFileFromUrl(msg.fileUrl, msg.fileName || (msg.messageType === 'image' ? 'image' : 'download'))
-                                      }}
-                                      className="px-2 py-1.5 text-xs font-black text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
-                                      title={msg.messageType === 'image' ? 'Tải ảnh' : 'Tải file'}
-                                    >
-                                      <Download className="h-3.5 w-3.5" />
-                                    </button>
-                                  )}
-
-                                  <button type="button" onClick={() => pinMessage(msg)} className={`px-2 py-1.5 text-xs font-black transition hover:bg-slate-100 dark:hover:bg-white/10 ${isPinned ? 'text-amber-500' : 'text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`} title={isPinned ? 'Bỏ ghim' : 'Ghim'}>
-                                    <Pin className="h-3.5 w-3.5" />
-                                  </button>
-
-                                  <div className="relative">
-                                    <button
-                                      type="button"
-                                      onClick={(event) => {
-                                        event.stopPropagation()
-                                        setReactionPickerMsgId(null)
-                                        setMessageMoreMenuId((value) => (value === msg.id ? null : msg.id))
-                                      }}
-                                      className="px-2 py-1.5 text-xs font-black text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
-                                      title="Thêm"
-                                    >
-                                      ⋯
-                                    </button>
-
-                                    {messageMoreMenuId === msg.id && (
-                                      <div className="absolute right-0 top-full z-50 mt-1 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1 shadow-2xl dark:border-white/10 dark:bg-slate-900">
-                                        <button type="button" onClick={() => { reactToMessage(msg, '👎'); setMessageMoreMenuId(null) }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-white/10">
-                                          👎 Không thích
-                                        </button>
-                                        <button type="button" onClick={() => { copyMessage(msg.content || msg.fileUrl || ''); setMessageMoreMenuId(null) }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-white/10">
-                                          ⧉ Sao chép
-                                        </button>
-                                        {(msg.messageType === 'image' || msg.messageType === 'file') && msg.fileUrl && (
-                                          <button type="button" onClick={() => { downloadFileFromUrl(msg.fileUrl, msg.fileName || (msg.messageType === 'image' ? 'image' : 'download')); setMessageMoreMenuId(null) }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-white/10">
-                                            📥 Tải xuống
+                                  {/* Reactions display */}
+                                  {reactionSummary.length > 0 && (
+                                    <div className="mt-1 flex flex-wrap gap-1">
+                                      {reactionSummary.map(([emoji, count]) => {
+                                        const myReaction = msgReactionMap[currentUser?.uid]
+                                        return (
+                                          <button key={emoji} type="button" onClick={() => reactToMessage(msg, emoji)}
+                                            className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-bold transition ${myReaction === emoji ? 'border-blue-300 bg-blue-50 text-blue-700 dark:border-sky-400 dark:bg-sky-500/20 dark:text-sky-200' : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-white/20'}`}
+                                          >
+                                            {emoji} <span>{count}</span>
                                           </button>
-                                        )}
-                                        {(msg.authorId === currentUser?.uid || canManageActiveGroup) && (
-                                          <button type="button" onClick={() => { deleteMessage(msg); setMessageMoreMenuId(null) }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-black text-rose-500 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-300">
-                                            🗑️ Xóa tin nhắn
-                                          </button>
-                                        )}
-                                      </div>
+                                        )
+                                      })}
+                                    </div>
+                                  )}
+                                  {/* Inline reply form — appears directly under the message, like the Hall */}
+                                  {replyTo?.msgId === msg.id && (
+                                    <form onSubmit={submitReply} className="mt-2 flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50/60 p-2 dark:border-blue-500/20 dark:bg-blue-500/10">
+                                      <input
+                                        ref={replyInputRef}
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        placeholder={`Trả lời ${msg.authorName || 'thành viên'}...`}
+                                        className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-blue-400 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                                      />
+                                      <button type="button" onClick={() => { setReplyTo(null); setReplyText('') }} className="rounded-xl px-3 py-2 text-xs font-black text-slate-400 hover:bg-white dark:hover:bg-white/10">Hủy</button>
+                                      <button type="submit" className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-black text-white hover:bg-blue-700">Gửi</button>
+                                    </form>
+                                  )}
+                                  {/* Hover toolbar */}
+                                  <div className="absolute -right-1 -top-1 hidden items-center overflow-visible rounded-xl border border-slate-200 bg-white shadow-xl group-hover/item:flex dark:border-white/10 dark:bg-slate-900">
+                                    <button type="button" onClick={() => reactToMessage(msg, '👍')} className="px-2 py-1.5 text-xs font-black text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white" title="Thích">👍</button>
+
+                                    <div className="relative">
+                                      <button type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          setMessageMoreMenuId(null)
+                                          setReactionPickerMsgId(msg.id)
+                                        }}
+                                        className="px-2 py-1.5 text-xs font-black text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white" title="Cảm xúc">🙂</button>
+                                      {reactionPickerMsgId === msg.id && (
+                                        <ReactionPicker onSelect={(emoji) => reactToMessage(msg, emoji)} onClose={() => setReactionPickerMsgId(null)} />
+                                      )}
+                                    </div>
+
+                                    {!msg.replyToId && (
+                                      <button type="button" onClick={() => replyToMember(msg)} className="px-2 py-1.5 text-xs font-black text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white" title="Trả lời">↩</button>
                                     )}
+
+                                    {msg.authorId === currentUser?.uid && (
+                                      <button type="button" onClick={() => startEditMessage(msg)} className="px-2 py-1.5 text-xs font-black text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white" title="Chỉnh sửa">✏️</button>
+                                    )}
+
+                                    {(msg.messageType === 'image' || msg.messageType === 'file') && msg.fileUrl && (
+                                      <button
+                                        type="button"
+                                        onClick={(event) => {
+                                          event.stopPropagation()
+                                          downloadFileFromUrl(msg.fileUrl, msg.fileName || (msg.messageType === 'image' ? 'image' : 'download'))
+                                        }}
+                                        className="px-2 py-1.5 text-xs font-black text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+                                        title={msg.messageType === 'image' ? 'Tải ảnh' : 'Tải file'}
+                                      >
+                                        <Download className="h-3.5 w-3.5" />
+                                      </button>
+                                    )}
+
+                                    <button type="button" onClick={() => pinMessage(msg)} className={`px-2 py-1.5 text-xs font-black transition hover:bg-slate-100 dark:hover:bg-white/10 ${isPinned ? 'text-amber-500' : 'text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`} title={isPinned ? 'Bỏ ghim' : 'Ghim'}>
+                                      <Pin className="h-3.5 w-3.5" />
+                                    </button>
+
+                                    <div className="relative">
+                                      <button
+                                        type="button"
+                                        onClick={(event) => {
+                                          event.stopPropagation()
+                                          setReactionPickerMsgId(null)
+                                          setMessageMoreMenuId((value) => (value === msg.id ? null : msg.id))
+                                        }}
+                                        className="px-2 py-1.5 text-xs font-black text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+                                        title="Thêm"
+                                      >
+                                        ⋯
+                                      </button>
+
+                                      {messageMoreMenuId === msg.id && (
+                                        <div className="absolute right-0 top-full z-50 mt-1 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1 shadow-2xl dark:border-white/10 dark:bg-slate-900">
+                                          <button type="button" onClick={() => { reactToMessage(msg, '👎'); setMessageMoreMenuId(null) }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-white/10">
+                                            👎 Không thích
+                                          </button>
+                                          <button type="button" onClick={() => { copyMessage(msg.content || msg.fileUrl || ''); setMessageMoreMenuId(null) }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-white/10">
+                                            ⧉ Sao chép
+                                          </button>
+                                          {(msg.messageType === 'image' || msg.messageType === 'file') && msg.fileUrl && (
+                                            <button type="button" onClick={() => { downloadFileFromUrl(msg.fileUrl, msg.fileName || (msg.messageType === 'image' ? 'image' : 'download')); setMessageMoreMenuId(null) }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-white/10">
+                                              📥 Tải xuống
+                                            </button>
+                                          )}
+                                          {(msg.authorId === currentUser?.uid || canManageActiveGroup) && (
+                                            <button type="button" onClick={() => { deleteMessage(msg); setMessageMoreMenuId(null) }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-black text-rose-500 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-300">
+                                              🗑️ Xóa tin nhắn
+                                            </button>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            )
-                          })}
+                              )
+                            })}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )
-                })}
-              </div>
-              <div ref={messagesEndRef} />
-            </div>
-          )}
-        </div>
-
-        {/* Input area */}
-        <div className="shrink-0 border-t border-slate-200 bg-white p-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] dark:border-white/10 dark:bg-slate-950 sm:p-5">
-          <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-100 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 shadow-inner shadow-black/5 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-500/30 dark:border-white/10 dark:bg-white/5 dark:shadow-black/10 dark:focus-within:ring-sky-500/50">
-            {/* Plus button with dropdown */}
-            <div ref={plusMenuRef} className="relative">
-              <input ref={imageFileInputRef} type="file" accept="image/*" className="hidden" onChange={(event) => handleAttachmentInput(event, 'image')} />
-              <input ref={groupFileInputRef} type="file" className="hidden" onChange={(event) => handleAttachmentInput(event, 'file')} />
-              <button type="button" onClick={() => setShowPlusMenu((v) => !v)} className="text-slate-400 transition hover:text-slate-900 dark:hover:text-white" title="Đính kèm">
-                <Plus className={`h-6 w-6 transition-transform duration-200 ${showPlusMenu ? 'rotate-45' : ''}`} />
-              </button>
-              {showPlusMenu && (
-                <div className="absolute bottom-full left-0 z-50 mb-2 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1 shadow-2xl dark:border-white/10 dark:bg-slate-900">
-                  <button type="button" disabled={!canSendGroupImage} onClick={() => { if (!canSendGroupImage) return toast.error('Nhóm này đã tắt quyền gửi ảnh của thành viên'); imageFileInputRef.current?.click() }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-45 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
-                    <Image className="h-4 w-4 text-blue-500" />Hình ảnh
-                  </button>
-                  <button type="button" disabled={!canSendGroupFile} onClick={() => { if (!canSendGroupFile) return toast.error('Nhóm này đã tắt quyền gửi file của thành viên'); groupFileInputRef.current?.click() }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-45 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
-                    <Paperclip className="h-4 w-4 text-emerald-500" />File
-                  </button>
-                  <button type="button" disabled={!canSendGroupMessage} onClick={enableNoticeMessage}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-45 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
-                    <Bell className="h-4 w-4 text-amber-500" />Thông báo
-                  </button>
+                    )
+                  })}
                 </div>
-              )}
-            </div>
-
-            {messageMode === 'notice' && (
-              <span className="hidden shrink-0 rounded-full bg-amber-100 px-3 py-1 text-[11px] font-black text-amber-700 dark:bg-amber-400/15 dark:text-amber-200 sm:inline-flex">
-                Thông báo
-              </span>
+                <div ref={messagesEndRef} />
+              </div>
             )}
-
-            <input ref={inputRef} value={inputText} disabled={!canSendGroupMessage} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e) } }}
-              placeholder={canSendGroupMessage ? (messageMode === 'notice' ? `Viết thông báo tại #${activeChannel?.label}` : `Nhắn tin tại #${activeChannel?.label}`) : 'Nhóm này đã tắt quyền nhắn tin của thành viên'}
-              className="min-w-0 flex-1 bg-transparent text-[15px] font-semibold text-slate-900 outline-none placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-400"
-            />
-
-            {/* Emoji picker button */}
-            <div className="relative">
-              <button type="button" onClick={() => setShowEmojiPicker((v) => !v)} className="hidden rounded-xl px-2 py-2 text-lg transition hover:bg-slate-200 dark:hover:bg-white/10 sm:block" title="Emoji">🙂</button>
-              {showEmojiPicker && <EmojiPicker onSelect={(emoji) => setInputText((prev) => prev + emoji)} onClose={() => setShowEmojiPicker(false)} />}
-            </div>
-
-            {/* Like button */}
-            <button type="button" onClick={sendQuickLike} disabled={!canSendGroupMessage} className="hidden rounded-xl disabled:cursor-not-allowed disabled:opacity-40 px-2 py-2 text-slate-400 transition hover:bg-slate-200 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white sm:flex items-center" title="Gửi like">
-              <ThumbsUp className="h-5 w-5" />
-            </button>
-
-            <button type="button" onClick={sendMessage} disabled={!inputText.trim() || !canSendGroupMessage} className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40">
-              <Send className="h-5 w-5" />
-            </button>
           </div>
-        </div>
+
+          {/* Input area */}
+          <div className="shrink-0 border-t border-slate-200 bg-white p-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] dark:border-white/10 dark:bg-slate-950 sm:p-5">
+            <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-100 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 shadow-inner shadow-black/5 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-500/30 dark:border-white/10 dark:bg-white/5 dark:shadow-black/10 dark:focus-within:ring-sky-500/50">
+              {/* Plus button with dropdown */}
+              <div ref={plusMenuRef} className="relative">
+                <input ref={imageFileInputRef} type="file" accept="image/*" className="hidden" onChange={(event) => handleAttachmentInput(event, 'image')} />
+                <input ref={groupFileInputRef} type="file" className="hidden" onChange={(event) => handleAttachmentInput(event, 'file')} />
+                <button type="button" onClick={() => setShowPlusMenu((v) => !v)} className="text-slate-400 transition hover:text-slate-900 dark:hover:text-white" title="Đính kèm">
+                  <Plus className={`h-6 w-6 transition-transform duration-200 ${showPlusMenu ? 'rotate-45' : ''}`} />
+                </button>
+                {showPlusMenu && (
+                  <div className="absolute bottom-full left-0 z-50 mb-2 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1 shadow-2xl dark:border-white/10 dark:bg-slate-900">
+                    <button type="button" disabled={!canSendGroupImage} onClick={() => { if (!canSendGroupImage) return toast.error('Nhóm này đã tắt quyền gửi ảnh của thành viên'); imageFileInputRef.current?.click() }}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-45 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
+                      <Image className="h-4 w-4 text-blue-500" />Hình ảnh
+                    </button>
+                    <button type="button" disabled={!canSendGroupFile} onClick={() => { if (!canSendGroupFile) return toast.error('Nhóm này đã tắt quyền gửi file của thành viên'); groupFileInputRef.current?.click() }}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-45 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
+                      <Paperclip className="h-4 w-4 text-emerald-500" />File
+                    </button>
+                    <button type="button" disabled={!canSendGroupMessage} onClick={enableNoticeMessage}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-black text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-45 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
+                      <Bell className="h-4 w-4 text-amber-500" />Thông báo
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {messageMode === 'notice' && (
+                <span className="hidden shrink-0 rounded-full bg-amber-100 px-3 py-1 text-[11px] font-black text-amber-700 dark:bg-amber-400/15 dark:text-amber-200 sm:inline-flex">
+                  Thông báo
+                </span>
+              )}
+
+              <input ref={inputRef} value={inputText} disabled={!canSendGroupMessage} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e) } }}
+                placeholder={canSendGroupMessage ? (messageMode === 'notice' ? `Viết thông báo tại #${activeChannel?.label}` : `Nhắn tin tại #${activeChannel?.label}`) : 'Nhóm này đã tắt quyền nhắn tin của thành viên'}
+                className="min-w-0 flex-1 bg-transparent text-[15px] font-semibold text-slate-900 outline-none placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-400"
+              />
+
+              {/* Emoji picker button */}
+              <div className="relative">
+                <button type="button" onClick={() => setShowEmojiPicker((v) => !v)} className="hidden rounded-xl px-2 py-2 text-lg transition hover:bg-slate-200 dark:hover:bg-white/10 sm:block" title="Emoji">🙂</button>
+                {showEmojiPicker && <EmojiPicker onSelect={(emoji) => setInputText((prev) => prev + emoji)} onClose={() => setShowEmojiPicker(false)} />}
+              </div>
+
+              {/* Like button */}
+              <button type="button" onClick={sendQuickLike} disabled={!canSendGroupMessage} className="hidden rounded-xl disabled:cursor-not-allowed disabled:opacity-40 px-2 py-2 text-slate-400 transition hover:bg-slate-200 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white sm:flex items-center" title="Gửi like">
+                <ThumbsUp className="h-5 w-5" />
+              </button>
+
+              <button type="button" onClick={sendMessage} disabled={!inputText.trim() || !canSendGroupMessage} className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40">
+                <Send className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
         </>
       </div>
 

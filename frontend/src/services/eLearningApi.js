@@ -12,6 +12,11 @@ export const eLearningApi = {
       params: { limit: 500 },
     })),
 
+  forumUsers: async () =>
+    unwrap(await apiClient.get('/forum/users', {
+      params: { limit: 500 },
+    })),
+
   updateUser: async (userId, payload) =>
     unwrap(await apiClient.patch(`/learning/users/${userId}`, payload)),
 
@@ -41,6 +46,14 @@ export const eLearningApi = {
 
   ratings: async (courseId) =>
     unwrap(await apiClient.get(`/courses/${courseId}/ratings`)),
+
+  rate: async (courseId, rating) =>
+    unwrap(await apiClient.post(`/courses/${courseId}/ratings`, {
+      rating: Number(rating),
+    })),
+
+  addView: async (courseId) =>
+    unwrap(await apiClient.post(`/courses/${courseId}/view`, {})),
 
   questions: async (courseId) =>
     unwrap(await apiClient.get(`/courses/${courseId}/questions`)),

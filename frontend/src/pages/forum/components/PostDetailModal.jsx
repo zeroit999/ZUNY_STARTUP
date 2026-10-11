@@ -6,6 +6,8 @@ import {
 } from 'react'
 
 import {
+  ChevronLeft,
+  Flag,
   Send,
   Share2,
   Trash2,
@@ -15,6 +17,7 @@ import {
 import toast from 'react-hot-toast'
 
 import apiClient from '../../../utils/apiClient'
+import PostCard from './PostCard.jsx'
 
 import {
   REACTIONS,
@@ -24,6 +27,7 @@ import {
 import {
   buildReactionCounts,
   formatRelativeTime,
+  getInitials,
   getReactionSummary,
   getUserReaction,
   timestampToMs,

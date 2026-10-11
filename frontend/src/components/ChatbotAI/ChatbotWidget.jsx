@@ -68,6 +68,102 @@ export default function ChatbotWidget() {
   const [memoryCount, setMemoryCount] = useState(0)
   const [grounding, setGrounding] = useState(null)
 
+  // Vị trí nút chatbot trên mobile, tính theo tọa độ viewport.
+  const [mobileBotPosition, setMobileBotPosition] = useState(null)
+  const [isMobileBot, setIsMobileBot] = useState(false)
+  const botDragRef = useRef(null)
+  const botSuppressClickRef = useRef(false)
+
+  useEffect(() => {
+    const updateViewport = () => {
+      const mobile = window.innerWidth < 768
+      setIsMobileBot(mobile)
+
+      if (!mobile) return
+
+      const size = 56
+      const margin = 12
+      const bottomSafe = 92
+
+      setMobileBotPosition((previous) => {
+        const defaultPosition = {
+          x: window.innerWidth - size - margin,
+          y: window.innerHeight - size - bottomSafe,
+        }
+
+        const next = previous || defaultPosition
+
+        return {
+          x: Math.max(margin, Math.min(next.x, window.innerWidth - size - margin)),
+          y: Math.max(margin, Math.min(next.y, window.innerHeight - size - margin)),
+        }
+      })
+    }
+
+    updateViewport()
+    window.addEventListener('resize', updateViewport)
+    return () => window.removeEventListener('resize', updateViewport)
+  }, [])
+
+  const handleBotPointerDown = (event) => {
+    if (!isMobileBot || open || event.button !== 0) return
+
+    botSuppressClickRef.current = false
+    botDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: mobileBotPosition?.x ?? window.innerWidth - 68,
+      originY: mobileBotPosition?.y ?? window.innerHeight - 148,
+      dragging: false,
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  const handleBotPointerMove = (event) => {
+    const drag = botDragRef.current
+    if (!isMobileBot || !drag || drag.pointerId !== event.pointerId) return
+
+    const dx = event.clientX - drag.startX
+    const dy = event.clientY - drag.startY
+
+    if (!drag.dragging && Math.hypot(dx, dy) < 3) return
+
+    drag.dragging = true
+    botSuppressClickRef.current = true
+
+    const size = 56
+    const margin = 12
+
+    setMobileBotPosition({
+      x: Math.max(margin, Math.min(drag.originX + dx * 1.25, window.innerWidth - size - margin)),
+      y: Math.max(margin, Math.min(drag.originY + dy * 1.25, window.innerHeight - size - margin)),
+    })
+  }
+
+  const handleBotPointerUp = (event) => {
+    const drag = botDragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+
+    botDragRef.current = null
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+  }
+
+  const handleBotClick = (event) => {
+    if (botSuppressClickRef.current) {
+      event.preventDefault()
+      event.stopPropagation()
+      botSuppressClickRef.current = false
+      return
+    }
+
+    handleToggle()
+  }
+
   const isDark = useSyncedDarkMode()
   const messagesEndRef = useRef(null)
   const activeContextRef = useRef('')
@@ -313,7 +409,7 @@ export default function ChatbotWidget() {
   )
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
+    <div className="pointer-events-none fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
       {open && (
         <div
           role="dialog"
@@ -321,7 +417,7 @@ export default function ChatbotWidget() {
           className={`${expanded
             ? 'fixed inset-2 w-auto sm:inset-5 lg:inset-8'
             : 'mb-3 w-[min(390px,calc(100vw-2rem))]'
-          } overflow-hidden rounded-[28px] border shadow-2xl transition-all duration-300 ${
+          } pointer-events-auto overflow-hidden rounded-[28px] border shadow-2xl transition-all duration-300 ${
             isDark
               ? 'border-violet-400/30 bg-[#080808] shadow-violet-500/20'
               : 'border-cyan-200 bg-white shadow-cyan-500/20'
@@ -576,8 +672,20 @@ export default function ChatbotWidget() {
       {!open && (
         <button
           type="button"
-          onClick={handleToggle}
-          className={`flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border shadow-xl transition-all duration-500 hover:scale-105 ${
+          onClick={handleBotClick}
+          onPointerDown={handleBotPointerDown}
+          onPointerMove={handleBotPointerMove}
+          onPointerUp={handleBotPointerUp}
+          onPointerCancel={handleBotPointerUp}
+          style={isMobileBot && mobileBotPosition ? {
+            position: 'fixed',
+            left: mobileBotPosition.x,
+            top: mobileBotPosition.y,
+            right: 'auto',
+            bottom: 'auto',
+            touchAction: 'none',
+          } : undefined}
+          className={`pointer-events-auto flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border shadow-xl transition-all duration-500 hover:scale-105 ${
             isDark
               ? 'border-violet-400/40 bg-[#080808] shadow-violet-500/30'
               : 'border-cyan-200 bg-white shadow-cyan-500/30'

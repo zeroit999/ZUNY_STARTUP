@@ -247,11 +247,13 @@ function getDisplayName(userDetails, currentUser, studentRecord) {
 }
 
 function getAvatar(userDetails, currentUser, studentRecord) {
-  return getUserAvatar({
+  const profile = {
+    ...(studentRecord || {}),
     ...(currentUser || {}),
     ...(userDetails || {}),
-    ...(studentRecord || {}),
-  })
+  }
+
+  return getUserAvatar(profile)
 }
 
 function getDefaultClassCover(index = 0) {
@@ -429,7 +431,24 @@ function formatStudentClassExamDate(value) {
 
 function StudentClassExamWorkspace({ selectedClass }) {
   const page = useExamsPage()
-  const visibleExams = Array.isArray(page.visibleExams) ? page.visibleExams : []
+  const visibleExams = (Array.isArray(page.visibleExams) ? page.visibleExams : [])
+    .filter((exam) => {
+      if (String(exam.status || '').toLowerCase() !== 'private') return false
+
+      const className = String(
+        selectedClass?.name || selectedClass?.className || ''
+      ).trim().toLowerCase()
+
+      if (!className) return false
+
+      const assignedClasses = Array.isArray(exam.selectedClasses)
+        ? exam.selectedClasses
+        : []
+
+      return assignedClasses.some(
+        (item) => String(item || '').trim().toLowerCase() === className
+      )
+    })
   const activeCount = visibleExams.filter((exam) => exam.isActive).length
   const upcomingCount = visibleExams.filter((exam) => exam.isUpcoming).length
   const endedCount = visibleExams.filter((exam) => !exam.isActive && !exam.isUpcoming).length
@@ -894,7 +913,7 @@ function LearningPage() {
         name: item.name || profile.displayName || profile.name || profile.fullName || '',
         role: profile.role || item.role || item.userRole || item.memberRole || '',
         gender: item.gender || item.sex || profile.gender || profile.sex || '',
-        photoURL: profile.photoURL || profile.photoUrl || profile.avatarUrl || profile.avatar || item.photoURL || item.photoUrl || item.avatarUrl || item.avatar || '',
+        photoURL: profile.customAvatar || profile.customAvatarUrl || profile.photoURL || profile.photoUrl || profile.avatarUrl || profile.avatar || item.photoURL || item.photoUrl || item.avatarUrl || item.avatar || '',
       }
     }
     const mergedStudents = students.map(mergeMember)
@@ -1069,7 +1088,7 @@ function LearningPage() {
       role: profile.role || member.role || member.userRole || member.memberRole || '',
       classRole: member.classRole || '',
       gender: member.gender || member.sex || profile.gender || profile.sex || '',
-      photoURL: profile.photoURL || profile.photoUrl || profile.avatarUrl || profile.avatar || member.photoURL || member.photoUrl || member.avatarUrl || member.avatar || '',
+      photoURL: profile.customAvatar || profile.customAvatarUrl || profile.photoURL || profile.photoUrl || profile.avatarUrl || profile.avatar || member.photoURL || member.photoUrl || member.avatarUrl || member.avatar || '',
     }
   }), [students, userProfilesByEmail])
 
@@ -2572,7 +2591,7 @@ function LearningPage() {
         {mobileMenuOpen ? <button type="button" className="student-mobile-backdrop" onClick={() => setMobileMenuOpen(false)} aria-label="Đóng menu" /> : null}
 
         <section className="student-workspace-main">
-          <header className="student-topbar"><button type="button" className="student-workspace-back" onClick={() => setClassView('list')} title="Về danh sách lớp">←</button><button className="student-menu-btn" type="button" onClick={() => { setSidebarCollapsed(false); setSectionOpen({ main: true, secondary: true }); setMobileMenuOpen(true) }}>☰</button><div className="student-topbar-actions"><button type="button" title="Thông báo" onClick={() => setActivePage('notifications')}>◇{unreadStudentNotifications.length ? <i /> : null}</button><div className="student-profile-menu-wrap"><button type="button" className="student-profile-trigger" onClick={() => setProfileMenuOpen((value) => !value)}><span className="student-avatar small">{studentAvatar ? <img src={studentAvatar} alt="" referrerPolicy="no-referrer" /> : getInitial(studentName)}</span><div><strong>{studentName}</strong><small>{selectedClass?.name || 'Học sinh'}</small></div><b>⌄</b></button>{profileMenuOpen ? <div className="student-profile-dropdown"><button type="button" onClick={() => { setActivePage('profile'); setProfileMenuOpen(false) }}>♙ Hồ sơ</button><span>{currentUser?.email || ''}</span></div> : null}</div></div></header>
+          <header className="student-topbar"><button type="button" className="student-workspace-back" onClick={() => setClassView('list')} title="Về danh sách lớp">←</button><span className="student-menu-btn" aria-hidden="true" /><div className="student-topbar-actions"><button type="button" title="Thông báo" onClick={() => setActivePage('notifications')}>◇{unreadStudentNotifications.length ? <i /> : null}</button><div className="student-profile-menu-wrap"><button type="button" className="student-profile-trigger" onClick={() => setProfileMenuOpen((value) => !value)}><span className="student-avatar small">{studentAvatar ? <img src={studentAvatar} alt="" referrerPolicy="no-referrer" /> : getInitial(studentName)}</span><div><strong>{studentName}</strong><small>{selectedClass?.name || 'Học sinh'}</small></div><b>⌄</b></button>{profileMenuOpen ? <div className="student-profile-dropdown"><button type="button" onClick={() => { setActivePage('profile'); setProfileMenuOpen(false) }}>♙ Hồ sơ</button><span>{currentUser?.email || ''}</span></div> : null}</div></div></header>
           <div className="student-page-content">{detailLoading && selectedClassId && ['grades','attendance','schedule','notifications'].includes(activePage) ? <SkeletonRows /> : renderCurrentPage()}</div>
           <nav className="student-mobile-nav">{[['home','⌂','Trang chủ'],['assignments','▤','Bài tập'],['schedule','▦','Lịch'],['messages','☵','Tin nhắn'],['notifications','◇','Thông báo']].map(([id,icon,label]) => <button key={id} type="button" className={activePage === id ? 'active' : ''} onClick={() => setActivePage(id)}><span>{icon}</span><small>{label}</small></button>)}</nav>
         </section>

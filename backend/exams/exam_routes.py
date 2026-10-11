@@ -1,3 +1,4 @@
+from werkzeug.exceptions import Forbidden
 from flask import Blueprint, request, jsonify
 
 from auth import auth_required
@@ -172,6 +173,11 @@ def update_exam_route(exam_id):
         payload = request.get_json() or {}
         data = update_exam(request.current_user, exam_id, payload)
         return jsonify(data), 200
+    except Forbidden as error:
+        return jsonify({
+            "success": False,
+            "message": error.description,
+        }), 403
     except Exception as error:
         return jsonify({
             "success": False,
@@ -185,6 +191,11 @@ def delete_exam_route(exam_id):
     try:
         data = delete_exam(request.current_user, exam_id)
         return jsonify(data), 200
+    except Forbidden as error:
+        return jsonify({
+            "success": False,
+            "message": error.description,
+        }), 403
     except Exception as error:
         return jsonify({
             "success": False,
@@ -239,6 +250,11 @@ def get_exam_results_route(exam_id):
     try:
         data = get_exam_results(request.current_user, exam_id)
         return jsonify(data), 200
+    except Forbidden as error:
+        return jsonify({
+            "success": False,
+            "message": error.description,
+        }), 403
     except Exception as error:
         return jsonify({
             "success": False,

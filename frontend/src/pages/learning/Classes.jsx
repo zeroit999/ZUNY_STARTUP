@@ -10,9 +10,7 @@ const TeacherClasses = lazy(() =>
 );
 
 const AttendanceQrCheckIn = lazy(() =>
-  import('./class-core/TeacherClasses.jsx').then((module) => ({
-    default: module.AttendanceQrCheckIn,
-  }))
+  import('./class-core/AttendanceQrCheckIn.jsx')
 );
 
 function ClassesLoading() {

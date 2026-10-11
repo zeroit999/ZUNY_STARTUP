@@ -68,6 +68,9 @@ export default function Profile() {
   const coverInputRef =
     useRef(null)
 
+  const avatarInputRef =
+    useRef(null)
+
   const [
     isEditing,
     setIsEditing,
@@ -82,6 +85,8 @@ export default function Profile() {
     isUploadingCover,
     setIsUploadingCover,
   ] = useState(false)
+
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
 
   /* =====================================================
      DARK MODE
@@ -284,6 +289,74 @@ export default function Profile() {
        Flask
          -> PostgreSQL users.profile_data
   ===================================================== */
+
+  const handleAvatarChange = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+
+    if (!file) return
+
+    const validation = validateImage(file)
+    if (!validation.valid) {
+      toast.error(validation.message || 'Ảnh không hợp lệ')
+      return
+    }
+
+    if (!user?.uid) {
+      toast.error('Vui lòng đăng nhập lại')
+      return
+    }
+
+    setIsUploadingAvatar(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      let token = authService.getAccessToken()
+      if (!token) {
+        throw new Error('Phiên đăng nhập không hợp lệ')
+      }
+
+      const upload = (accessToken) => fetch(
+        `${API_BASE_URL}/api/storage/profile/avatar`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: formData,
+        }
+      )
+
+      let response = await upload(token)
+
+      if (response.status === 401 && authService.getRefreshToken()) {
+        await authService.refreshAccessToken()
+        token = authService.getAccessToken()
+        if (!token) {
+          throw new Error('Không thể làm mới phiên đăng nhập')
+        }
+        response = await upload(token)
+      }
+
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok || !data.customAvatar) {
+        throw new Error(
+          data.error || data.message || 'Không thể cập nhật avatar'
+        )
+      }
+
+      await refreshUserData?.()
+      toast.success('Đã cập nhật ảnh đại diện')
+    } catch (error) {
+      console.error('Avatar upload error:', error)
+      toast.error(error?.message || 'Không thể cập nhật avatar')
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
 
   const handleCoverChange =
     async (event) => {
@@ -845,6 +918,29 @@ export default function Profile() {
             <div
               className="zuny-profile-avatar-wrapper"
             >
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                onChange={handleAvatarChange}
+              />
+              <button
+                type="button"
+                aria-label="Đổi ảnh đại diện"
+                title="Đổi ảnh đại diện"
+                disabled={isUploadingAvatar}
+                onClick={() => avatarInputRef.current?.click()}
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  opacity: 0,
+                  cursor: isUploadingAvatar ? 'wait' : 'pointer',
+                  zIndex: 5,
+                }}
+              />
               <div
                 className="zuny-profile-avatar-border"
 

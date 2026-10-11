@@ -1,10 +1,9 @@
+import { useEffect, useState } from 'react'
 import {
   Bell,
   Bookmark,
   FileText,
   Globe2,
-  PanelLeftClose,
-  PanelRightOpen,
   ShieldCheck,
   Users,
   X,
@@ -16,14 +15,31 @@ function Sidebar({
   onChange,
   dark,
   onToggleDark,
-  mobileOpen,
-  onClose,
   roleKey,
+  mobileOpen: mobileOpenProp,
   unreadNotificationsCount = 0,
   pendingReviewCount = 0,
-  collapsed = false,
-  onToggleCollapsed,
+  onExpandedChange,
+  onClose,
 }) {
+  const [desktopHovered, setDesktopHovered] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(Boolean(mobileOpenProp))
+  const expanded = desktopHovered || mobileOpen
+
+  useEffect(() => {
+    setMobileOpen(Boolean(mobileOpenProp))
+  }, [mobileOpenProp])
+
+  useEffect(() => {
+    onExpandedChange?.(desktopHovered)
+    return () => onExpandedChange?.(false)
+  }, [desktopHovered, onExpandedChange])
+
+  const closeMobile = () => {
+    setMobileOpen(false)
+    onClose?.()
+  }
+
   const items = [
     { id: SECTIONS.HALL, label: 'Cộng đồng ZUNY', icon: Globe2 },
     { id: SECTIONS.GROUPS, label: 'Nhóm học', icon: Users },
@@ -37,24 +53,23 @@ function Sidebar({
 
   const content = (
     <aside
-      className={`flex h-full max-h-full shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white/95 p-4 shadow-xl shadow-slate-200/70 backdrop-blur transition-all duration-300 dark:border-white/10 dark:bg-slate-950/95 dark:shadow-black/20 ${
-        collapsed ? 'w-24' : 'w-72'
-      }`}
+      className={`flex h-full max-h-full shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white/95 p-4 shadow-xl shadow-slate-200/70 backdrop-blur transition-all duration-300 dark:border-white/10 dark:bg-slate-950/95 dark:shadow-black/20 ${expanded ? 'w-72' : 'w-24'
+        }`}
     >
-      <div className={`shrink-0 flex items-center gap-3 px-2 py-2 ${collapsed ? 'justify-center' : 'justify-between'}`}>
-        <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+      <div className={`shrink-0 flex items-center gap-3 px-2 py-2 ${expanded ? 'justify-between' : 'justify-center'}`}>
+        <div className={`flex items-center gap-3 ${expanded ? '' : 'justify-center'}`}>
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 via-blue-500 to-cyan-500 text-white shadow-lg shadow-sky-500/25">
             <Globe2 className="h-6 w-6" />
           </div>
 
-          {!collapsed && (
+          {expanded && (
             <div>
-              <h1 className="text-xl font-black tracking-tight text-slate-950 dark:text-white">Cộng đồng ZUNY</h1>
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Cộng đồng học tập</p>
-            </div>
+    <aside
+      className={`relative flex h-fit max-h-[calc(100dvh-112px)] shrink-0 flex-col overflow-hidden rounded-[26px] border p-2 transition-[width] duration-300 ease-out ${expanded ? 'w-[240px]' : 'w-16'
+        } border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-200/70 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:shadow-black/20`}
           )}
         </div>
-
+      <div className={`flex h-[64px] shrink-0 items-center border-b ${expanded ? 'gap-3 px-2' : 'justify-center px-1'} border-slate-200/80 dark:border-white/10`}>
         <button type="button" onClick={onClose} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 lg:hidden">
           <X className="h-5 w-5" />
         </button>
@@ -69,14 +84,12 @@ function Sidebar({
               key={item.id}
               type="button"
               onClick={() => onChange(item.id)}
-              title={collapsed ? item.label : undefined}
-              className={`flex w-full items-center rounded-2xl px-4 py-3 text-sm font-black transition ${
-                collapsed ? 'justify-center' : 'gap-3'
-              } ${
-                active
+              title={!expanded ? item.label : undefined}
+              className={`flex w-full items-center rounded-2xl px-4 py-3 text-sm font-black transition ${expanded ? 'gap-3' : 'justify-center'
+                } ${active
                   ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-lg shadow-sky-500/25'
                   : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10'
-              }`}
+                }`}
             >
               <span className="relative inline-flex">
                 <Icon className="h-5 w-5 shrink-0" />
@@ -86,41 +99,24 @@ function Sidebar({
                   </span>
                 )}
               </span>
-              {!collapsed && <span className="truncate">{item.label}</span>}
+              {expanded && <span className="truncate">{item.label}</span>}
             </button>
           )
         })}
       </nav>
 
-      <div className="mt-auto shrink-0 pt-4">
-        <button
-          type="button"
-          onClick={onToggleCollapsed}
-          title={collapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
-          className={`group hidden w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-500 shadow-sm transition-all duration-300 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-blue-500/10 dark:hover:text-blue-200 lg:flex ${
-            collapsed ? 'h-12 px-0' : ''
-          }`}
-        >
-          {collapsed ? (
-            <PanelRightOpen className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-          ) : (
-            <>
-              <PanelLeftClose className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-              <span className="whitespace-nowrap">Thu gọn menu</span>
-            </>
-          )}
-        </button>
-      </div>
     </aside>
-  )
+        )
 
-  return (
-    <>
-      <div className="fixed left-0 top-[80px] z-40 hidden h-[calc(100vh-80px)] lg:block">{content}</div>
-      {mobileOpen && <div className="fixed inset-0 z-[80] bg-slate-950/60 backdrop-blur-sm lg:hidden" onMouseDown={onClose}><div className="h-full" onMouseDown={(event) => event.stopPropagation()}>{content}</div></div>}
-    </>
-  )
+        return (
+        <>
+          <div className="fixed left-4 top-1/2 z-40 hidden -translate-y-1/2 lg:block" onMouseEnter={() => setDesktopHovered(true)} onMouseLeave={() => setDesktopHovered(false)}>{content}</div>
+          <nav className="forum-mobile-navbar lg:hidden" aria-label="Điều hướng diễn đàn">
+            {items.map((item) => { const Icon = item.icon; return <button key={item.id} type="button" className={activeSection === item.id ? 'active' : ''} onClick={() => onChange(item.id)} aria-label={item.label}><span className="relative"><Icon className="h-5 w-5" />{item.badge > 0 && <b>{item.badge > 999 ? '999+' : item.badge}</b>}</span><small>{item.label}</small></button> })}
+          </nav>
+        </>
+        )
 }
 
 
-export default Sidebar
+        export default Sidebar

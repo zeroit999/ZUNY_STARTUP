@@ -35,46 +35,46 @@ function ExamSidebar({
     () =>
       isStudent
         ? [
-            {
-              id: 'overview',
-              label: 'Tổng quan',
-              icon: LayoutDashboard,
-            },
-            {
-              id: 'repository',
-              label: 'Kho đề thi',
-              icon: BookOpen,
-            },
-            {
-              id: 'exam-room',
-              label: 'Phòng thi',
-              icon: DoorOpen,
-            },
-            {
-              id: 'statistics',
-              label: 'Tiến độ của tôi',
-              icon: BarChart3,
-            },
-          ]
+          {
+            id: 'overview',
+            label: 'Tổng quan',
+            icon: LayoutDashboard,
+          },
+          {
+            id: 'repository',
+            label: 'Kho đề thi',
+            icon: BookOpen,
+          },
+          {
+            id: 'exam-room',
+            label: 'Phòng thi',
+            icon: DoorOpen,
+          },
+          {
+            id: 'statistics',
+            label: 'Tiến độ của tôi',
+            icon: BarChart3,
+          },
+        ]
         : [
-            {
-              id: 'overview',
-              label: 'Tổng quan',
-              icon: LayoutDashboard,
-            },
-            {
-              id: 'repository',
-              label: 'Kho đề thi',
-              icon: BookOpen,
-              badge: page?.exams?.length || 0,
-            },
-            {
-              id: 'submissions',
-              label: 'Danh sách bài nộp',
-              icon: ClipboardList,
-              badge: page?.studentResults?.length || 0,
-            },
-          ],
+          {
+            id: 'overview',
+            label: 'Tổng quan',
+            icon: LayoutDashboard,
+          },
+          {
+            id: 'repository',
+            label: 'Kho đề thi',
+            icon: BookOpen,
+            badge: page?.exams?.length || 0,
+          },
+          {
+            id: 'submissions',
+            label: 'Danh sách bài nộp',
+            icon: ClipboardList,
+            badge: page?.studentResults?.length || 0,
+          },
+        ],
     [isStudent, page?.exams?.length, page?.studentResults],
   )
 
@@ -111,43 +111,37 @@ function ExamSidebar({
 
   const SidebarContent = ({ mobile = false }) => (
     <aside
-      className={`relative flex h-fit max-h-[calc(100dvh-112px)] flex-col overflow-hidden rounded-[26px] border transition-[width] duration-300 ease-out ${
-        mobile ? 'w-[220px]' : expanded ? 'w-[240px]' : 'w-[64px]'
-      } ${
-        darkMode
+      className={`relative flex h-fit max-h-[calc(100dvh-112px)] flex-col overflow-hidden rounded-[26px] border transition-[width] duration-300 ease-out ${mobile ? 'w-[220px]' : expanded ? 'w-[240px]' : 'w-[64px]'
+        } ${darkMode
           ? 'border-white/10 bg-[#0b0b14] text-white shadow-none'
           : 'border-slate-200 bg-white text-slate-900 shadow-none'
-      }`}
+        }`}
     >
       <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
-      <div
-        className={`absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent to-transparent ${
-          darkMode ? 'via-violet-300/45' : 'via-violet-400/55'
-        }`}
-      />
+        <div
+          className={`absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent to-transparent ${darkMode ? 'via-violet-300/45' : 'via-violet-400/55'
+            }`}
+        />
 
       </div>
 
       <div
-        className={`flex h-[64px] shrink-0 items-center border-b ${
-          expanded || mobile ? 'gap-3 px-3' : 'justify-center px-1'
-        } ${darkMode ? 'border-white/8' : 'border-slate-200/80'}`}
+        className={`flex h-[64px] shrink-0 items-center border-b ${expanded || mobile ? 'gap-3 px-3' : 'justify-center px-1'
+          } ${darkMode ? 'border-white/8' : 'border-slate-200/80'}`}
       >
         <div
-          className={`relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[16px] shadow-[0_7px_22px_rgba(99,102,241,0.30)] ring-1 ${
-            darkMode
+          className={`relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[16px] shadow-[0_7px_22px_rgba(99,102,241,0.30)] ring-1 ${darkMode
               ? 'bg-white ring-white/30'
               : 'bg-slate-50 ring-violet-200'
-          }`}
+            }`}
         >
           <span className="absolute inset-[3px] rounded-[11px] bg-gradient-to-br from-cyan-400 via-indigo-500 to-fuchsia-500" />
 
           <span
-            className={`relative flex h-8 w-8 items-center justify-center rounded-[9px] text-sm font-black tracking-[-0.08em] ${
-              darkMode
+            className={`relative flex h-8 w-8 items-center justify-center rounded-[9px] text-sm font-black tracking-[-0.08em] ${darkMode
                 ? 'bg-[#0b1224] text-white'
                 : 'bg-white text-violet-700'
-            }`}
+              }`}
           >
             Z
           </span>
@@ -157,9 +151,8 @@ function ExamSidebar({
           <>
             <div className="min-w-0 flex-1">
               <p
-                className={`truncate text-sm font-black tracking-wide ${
-                  darkMode ? 'text-violet-200' : 'text-violet-700'
-                }`}
+                className={`truncate text-sm font-black tracking-wide ${darkMode ? 'text-violet-200' : 'text-violet-700'
+                  }`}
               >
                 ZUNY Exam
               </p>
@@ -169,11 +162,10 @@ function ExamSidebar({
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className={`rounded-lg p-1.5 transition ${
-                  darkMode
+                className={`rounded-lg p-1.5 transition ${darkMode
                     ? 'text-slate-400 hover:bg-white/10 hover:text-white'
                     : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
-                }`}
+                  }`}
                 aria-label="Đóng sidebar"
               >
                 <X className="h-4 w-4" />
@@ -184,9 +176,8 @@ function ExamSidebar({
       </div>
 
       <nav
-        className={`shrink-0 py-3 ${
-          expanded || mobile ? 'px-2.5' : 'px-1.5'
-        }`}
+        className={`shrink-0 py-3 ${expanded || mobile ? 'px-2.5' : 'px-1.5'
+          }`}
         aria-label="Điều hướng đề thi"
       >
         <div className="space-y-1.5">
@@ -202,32 +193,29 @@ function ExamSidebar({
                 title={!expanded && !mobile ? item.label : undefined}
                 aria-label={item.label}
                 aria-current={active ? 'page' : undefined}
-                className={`group relative flex h-11 w-full items-center rounded-[16px] transition-all duration-200 ${
-                  expanded || mobile
+                className={`group relative flex h-11 w-full items-center rounded-[16px] transition-all duration-200 ${expanded || mobile
                     ? 'gap-3 px-3'
                     : 'justify-center px-0'
-                } ${
-                  active
+                  } ${active
                     ? darkMode
                       ? 'bg-violet-600/35 text-violet-200 shadow-[inset_0_0_0_1px_rgba(139,92,246,0.18)]'
                       : 'bg-violet-100 text-violet-700 shadow-[inset_0_0_0_1px_rgba(139,92,246,0.16)]'
                     : darkMode
                       ? 'text-slate-500 hover:bg-white/6 hover:text-slate-200'
                       : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
-                }`}
+                  }`}
               >
                 {active && (
                   <span className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-full bg-gradient-to-b from-violet-400 to-fuchsia-400 shadow-[0_0_10px_rgba(167,139,250,0.95)]" />
                 )}
 
                 <Icon
-                  className={`h-5 w-5 shrink-0 transition ${
-                    active
+                  className={`h-5 w-5 shrink-0 transition ${active
                       ? darkMode
                         ? 'text-violet-300'
                         : 'text-violet-600'
                       : 'text-current'
-                  }`}
+                    }`}
                 />
 
                 {(expanded || mobile) && (
@@ -238,11 +226,10 @@ function ExamSidebar({
 
                     {Number(item.badge) > 0 && (
                       <span
-                        className={`flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-black ${
-                          darkMode
+                        className={`flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-black ${darkMode
                             ? 'bg-violet-500/25 text-violet-200'
                             : 'bg-violet-100 text-violet-700'
-                        }`}
+                          }`}
                       >
                         {item.badge > 99 ? '99+' : item.badge}
                       </span>
@@ -267,14 +254,17 @@ function ExamSidebar({
         <SidebarContent />
       </div>
 
+      <nav className="exam-mobile-navbar lg:hidden" aria-label="Điều hướng đề thi">
+        {menuItems.map((item) => { const Icon = item.icon; return <button key={item.id} type="button" className={activeItem === item.id ? 'active' : ''} onClick={() => handleNavigate(item)} aria-label={item.label}><span className="relative"><Icon className="h-5 w-5" />{Number(item.badge) > 0 && <b>{item.badge > 99 ? '99+' : item.badge}</b>}</span><small>{item.label}</small></button> })}
+      </nav>
+
       <button
         type="button"
         onClick={() => setMobileOpen(true)}
-        className={`fixed left-3 top-1/2 z-40 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-2xl border shadow-none lg:hidden ${
-          darkMode
+        className={`hidden ${darkMode
             ? 'border-white/10 bg-[#0b0b14] text-violet-200'
             : 'border-slate-200 bg-white text-violet-700'
-        }`}
+          }`}
         aria-label="Mở sidebar đề thi"
       >
         <LayoutDashboard className="h-5 w-5" />
@@ -284,9 +274,8 @@ function ExamSidebar({
         <div className="fixed inset-0 z-[80] lg:hidden">
           <button
             type="button"
-            className={`absolute inset-0 backdrop-blur-sm ${
-              darkMode ? 'bg-slate-950/65' : 'bg-slate-900/35'
-            }`}
+            className={`absolute inset-0 backdrop-blur-sm ${darkMode ? 'bg-slate-950/65' : 'bg-slate-900/35'
+              }`}
             onClick={() => setMobileOpen(false)}
             aria-label="Đóng sidebar"
           />

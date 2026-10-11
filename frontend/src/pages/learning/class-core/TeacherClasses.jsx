@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import eLearningApi from '../../../services/eLearningApi.js';
 import classroomApi from '../../../services/classroomApi.js';
@@ -11,9 +11,9 @@ import {
   StatCard,
 } from '../class-ui/ClassWidgets.jsx';
 import styles from './classStyles.js';
-import useExamsPage from '../../../hooks/exam/useExamsPage.js';
-import CreateExamModal from '../../../components/exam/CreateExamModal.jsx';
-import { CourseFormModal } from '../../e-learning/e-learning/components/CourseComponents.jsx';
+const OverviewChartGrid = lazy(() => import('./OverviewChartGrid.jsx'));
+const ClassExamWorkspace = lazy(() => import('./ClassExamWorkspace.jsx'));
+const CourseFormModal = lazy(() => import('../../e-learning/e-learning/components/CourseComponents.jsx').then(module => ({ default: module.CourseFormModal })));
 import { courseTextLimits } from '../../e-learning/e-learning/constants/courseConstants.js';
 import {
   countWords as countELearningWords,
@@ -780,47 +780,6 @@ function buildJpegPdf(pages = []) {
   return concatUint8Arrays(parts);
 }
 
-function DonutChart({ segments = [], centerValue = '—', centerLabel = '' }) {
-  const [hoveredSegment, setHoveredSegment] = useState(null);
-  const total = segments.reduce((sum, item) => sum + item.value, 0);
-  let offset = 0;
-  return (
-    <div className="dashboard-donut-wrap chart-tooltip-host" onMouseLeave={() => setHoveredSegment(null)}>
-      <svg className="dashboard-donut" viewBox="0 0 120 120" role="img" aria-label={centerLabel}>
-        <circle cx="60" cy="60" r="43" fill="none" stroke="currentColor" strokeWidth="15" className="chart-track" />
-        {total > 0 ? segments.map((item) => {
-          const percent = item.value / total;
-          const dash = percent * 270.18;
-          const currentOffset = offset;
-          offset += dash;
-          return (
-            <circle
-              key={item.label}
-              cx="60"
-              cy="60"
-              r="43"
-              fill="none"
-              stroke={item.color}
-              strokeWidth="15"
-              strokeLinecap="butt"
-              strokeDasharray={`${dash} ${270.18 - dash}`}
-              strokeDashoffset={-currentOffset}
-              transform="rotate(-90 60 60)"
-              className={hoveredSegment?.label === item.label ? 'chart-hover-active' : 'chart-hover-target'}
-              onMouseEnter={() => setHoveredSegment(item)}
-            />
-          );
-        }) : null}
-        <text x="60" y="57" textAnchor="middle" className="chart-center-value">{centerValue}</text>
-        <text x="60" y="73" textAnchor="middle" className="chart-center-label">{centerLabel}</text>
-      </svg>
-      {hoveredSegment ? <div className="chart-hover-tooltip donut-tooltip"><strong>{hoveredSegment.label}</strong><span>Số học sinh: <b>{hoveredSegment.value}</b></span>{total > 0 ? <small>{Math.round((hoveredSegment.value / total) * 100)}% tổng số có dữ liệu</small> : null}</div> : null}
-      <div className="dashboard-chart-legend">
-        {segments.map((item) => <span key={item.label}><i style={{ background: item.color }} />{item.label} <b>{item.value}</b></span>)}
-      </div>
-    </div>
-  );
-}
 
 function LineChart({ points = [] }) {
   const valid = points.filter((item) => item.value !== null && item.value !== undefined);
@@ -865,399 +824,7 @@ function BarChart({ points = [] }) {
 }
 
 
-function AttendanceMonthChart({ data = [], monthLabel = '' }) {
-  if (!data.some((item) => item.total > 0)) return <div className="chart-empty">Chưa có dữ liệu điểm danh trong {monthLabel}.</div>;
-  return (
-    <div className="attendance-month-chart">
-      <div className="attendance-month-bars">
-        {data.map((item) => {
-          const rate = item.total ? Math.round((item.present / item.total) * 100) : 0;
-          return (
-            <div className="attendance-month-day chart-tooltip-host" key={item.key}>
-              <div className="attendance-month-track"><i className="chart-hover-target" style={{ height: `${rate}%` }} /></div>
-              <span>{item.shortLabel}</span>
-              <div className="chart-hover-tooltip attendance-tooltip"><strong>{item.label}</strong><span>Có mặt: <b>{item.present}</b></span><span>Vắng: <b>{item.absent}</b></span><small>Tỷ lệ có mặt {rate}%</small></div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
-function AttendanceWeekChart({ data = [] }) {
-  if (!data.some((item) => item.total > 0)) return <div className="chart-empty">Chưa có dữ liệu điểm danh trong tuần này.</div>;
-  return (
-    <div className="attendance-week-chart">
-      {data.map((item) => (
-        <div className="attendance-week-column chart-tooltip-host" key={item.key}>
-          <div className="attendance-week-bars">
-            <i className="attendance-present chart-hover-target" style={{ height: `${item.total ? Math.max(8, (item.present / item.total) * 100) : 0}%` }}><b>{item.present || ''}</b></i>
-            <i className="attendance-absent chart-hover-target" style={{ height: `${item.total ? Math.max(item.absent ? 8 : 0, (item.absent / item.total) * 100) : 0}%` }}><b>{item.absent || ''}</b></i>
-          </div>
-          <span>{item.label}</span>
-          <div className="chart-hover-tooltip attendance-tooltip"><strong>{item.label}</strong><span>Có mặt: <b>{item.present}</b></span><span>Vắng: <b>{item.absent}</b></span>{item.late ? <span>Trễ: <b>{item.late}</b></span> : null}<small>Tổng lượt: {item.total}</small></div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export function AttendanceQrCheckIn({ classId, date, token }) {
-  const { user, userDetails } = useAuth();
-  const authUser = user;
-
-  const [classInfo, setClassInfo] = useState(null);
-  const [session, setSession] = useState(null);
-  const [status, setStatus] = useState('loading');
-  const [error, setError] = useState('');
-  const [confirming, setConfirming] = useState(false);
-  const [checkInChoice, setCheckInChoice] = useState('present');
-  const [excusedNote, setExcusedNote] = useState('');
-  const [clock, setClock] = useState(Date.now());
-
-  useEffect(() => {
-    const timer = window.setInterval(
-      () => setClock(Date.now()),
-      1000
-    );
-
-    return () => window.clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!classId || !date || !token) {
-      setStatus('invalid');
-      setError('Mã QR không hợp lệ.');
-      setClassInfo(null);
-      setSession(null);
-      return undefined;
-    }
-
-    let cancelled = false;
-
-    const loadQrSession = async () => {
-      try {
-        const [classResult, qrResult] = await Promise.all([
-          classroomApi.getClassroom(classId),
-          classroomApi.getAttendanceQr(
-            classId,
-            date,
-            { token }
-          ),
-        ]);
-
-        if (cancelled) return;
-
-        setClassInfo(
-          classResult?.classroom
-          || classResult?.class
-          || null
-        );
-
-        const attendance =
-          qrResult?.attendance
-          || null;
-
-        setSession(attendance);
-
-        if (!qrResult?.valid) {
-          setStatus('expired');
-          setError(
-            'Mã QR đã hết hiệu lực hoặc đã được thay mới.'
-          );
-          return;
-        }
-
-        if (
-          !attendance?.qrExpiresAt
-          || Date.now() >= Number(attendance.qrExpiresAt)
-        ) {
-          setStatus('expired');
-          setError(
-            'Mã QR đã hết hạn. Vui lòng quét mã mới từ giáo viên.'
-          );
-          return;
-        }
-
-        setStatus((current) =>
-          current === 'success'
-            ? current
-            : 'ready'
-        );
-
-        setError('');
-      } catch (apiError) {
-        if (cancelled) return;
-
-        setSession(null);
-        setStatus('invalid');
-        setError(
-          apiError?.message
-          || 'Không thể kiểm tra mã QR.'
-        );
-      }
-    };
-
-    loadQrSession();
-
-    const intervalId = window.setInterval(
-      loadQrSession,
-      4000
-    );
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-    };
-  }, [classId, date, token]);
-
-  const expiresIn = Math.max(
-    0,
-    Number(session?.qrExpiresAt || 0) - clock
-  );
-
-  const minutes = Math.floor(
-    expiresIn / 60000
-  );
-
-  const seconds = Math.floor(
-    (expiresIn % 60000) / 1000
-  );
-
-  const confirmCheckIn = async () => {
-    if (
-      !authUser?.uid
-      || !session
-      || session.qrToken !== token
-      || Date.now() >= Number(session.qrExpiresAt || 0)
-    ) {
-      return;
-    }
-
-    if (
-      normalizeText(userDetails?.role).includes('teacher')
-    ) {
-      setError(
-        'Tài khoản giáo viên không được điểm danh như học sinh.'
-      );
-      return;
-    }
-
-    if (
-      checkInChoice === 'excused'
-      && !excusedNote.trim()
-    ) {
-      setError(
-        'Vui lòng nhập lý do vắng có phép.'
-      );
-      return;
-    }
-
-    try {
-      setConfirming(true);
-      setError('');
-
-      const result =
-        await classroomApi.attendanceCheckIn(
-          classId,
-          date,
-          {
-            token,
-            status: checkInChoice,
-            note:
-              checkInChoice === 'excused'
-                ? excusedNote.trim()
-                : '',
-          }
-        );
-
-      if (result?.attendance) {
-        setSession(result.attendance);
-      }
-
-      setStatus('success');
-    } catch (apiError) {
-      setError(
-        apiError?.message
-        || 'Không thể xác nhận điểm danh.'
-      );
-    } finally {
-      setConfirming(false);
-    }
-  };
-
-  const checkInDisplayName =
-    userDetails?.fullName ||
-    userDetails?.displayName ||
-    userDetails?.name ||
-    authUser?.displayName ||
-    authUser?.email?.split('@')?.[0] ||
-    'Học sinh';
-
-  const checkInAvatar = getUserAvatar({
-    ...(authUser || {}),
-    ...(userDetails || {}),
-  });
-
-  return (
-    <main className="qr-student-checkin-page">
-      <section className="qr-student-checkin-card">
-        <div className="qr-checkin-logo">✓</div>
-        <span className="qr-checkin-eyebrow">Điểm danh QR</span>
-        <h1>{classInfo?.name || 'Lớp học'}</h1>
-
-        {status === 'loading'
-          ? <p>Đang kiểm tra mã điểm danh...</p>
-          : null}
-
-        {!authUser
-          ? (
-            <div className="qr-checkin-message warning">
-              <strong>Bạn chưa đăng nhập</strong>
-              <span>Vui lòng đăng nhập tài khoản học sinh rồi quét lại mã QR.</span>
-            </div>
-          )
-          : null}
-
-        {status === 'ready' && authUser
-          ? (
-            <>
-              <div className="qr-checkin-student">
-                <span className={checkInAvatar ? 'has-image' : ''}>
-                  {checkInAvatar
-                    ? (
-                      <img
-                        src={checkInAvatar}
-                        alt=""
-                        referrerPolicy="no-referrer"
-                      />
-                    )
-                    : getInitial(checkInDisplayName)}
-                </span>
-
-                <div>
-                  <strong>{checkInDisplayName}</strong>
-                  <small>{authUser.email || userDetails?.email || ''}</small>
-                </div>
-              </div>
-
-              <div className="qr-checkin-time">
-                Mã còn hiệu lực{' '}
-                <b>
-                  {minutes}:{String(seconds).padStart(2, '0')}
-                </b>
-              </div>
-
-              <div className="qr-checkin-choice">
-                <button
-                  type="button"
-                  className={checkInChoice === 'present' ? 'active' : ''}
-                  onClick={() => {
-                    setCheckInChoice('present');
-                    setError('');
-                  }}
-                >
-                  ✓ Có mặt
-                </button>
-
-                <button
-                  type="button"
-                  className={
-                    checkInChoice === 'excused'
-                      ? 'active excused'
-                      : 'excused'
-                  }
-                  onClick={() => {
-                    setCheckInChoice('excused');
-                    setError('');
-                  }}
-                >
-                  ○ Vắng có phép
-                </button>
-              </div>
-
-              {checkInChoice === 'excused'
-                ? (
-                  <label className="qr-excused-note">
-                    <span>Lý do vắng có phép</span>
-                    <textarea
-                      rows="3"
-                      value={excusedNote}
-                      onChange={(event) =>
-                        setExcusedNote(event.target.value)}
-                      placeholder="Nhập lý do để giáo viên thấy trong ghi chú điểm danh..."
-                    />
-                  </label>
-                )
-                : null}
-
-              <button
-                type="button"
-                className="qr-confirm-btn"
-                onClick={confirmCheckIn}
-                disabled={confirming}
-              >
-                {confirming
-                  ? 'Đang xác nhận...'
-                  : 'Xác nhận điểm danh'}
-              </button>
-            </>
-          )
-          : null}
-
-        {status === 'success'
-          ? (
-            <div className="qr-checkin-success">
-              <span>✓</span>
-              <strong>Điểm danh thành công</strong>
-              <p>
-                Giáo viên sẽ thấy trạng thái{' '}
-                {checkInChoice === 'excused'
-                  ? 'Vắng có phép'
-                  : 'Có mặt'}{' '}
-                theo thời gian thực.
-              </p>
-            </div>
-          )
-          : null}
-
-        {error
-          ? <p className="qr-checkin-error">{error}</p>
-          : null}
-      </section>
-
-      <style>{styles}</style>
-    </main>
-  );
-}
-
-
-function getClassExamTypeText(exam = {}) {
-  const questions = Array.isArray(exam.questions) ? exam.questions : [];
-  const hasEssay = questions.some((question) => question.type === 'essay');
-  const hasChoice = questions.some((question) => question.type !== 'essay');
-  if (hasEssay && hasChoice) return 'Trắc nghiệm + Tự luận';
-  if (hasEssay) return 'Tự luận';
-  return 'Trắc nghiệm';
-}
-
-function getClassExamStatus(exam = {}) {
-  if (exam.isActive) return { id: 'active', label: 'Đang mở' };
-  if (exam.isUpcoming) return { id: 'draft', label: 'Nháp' };
-  return { id: 'ended', label: 'Đã đóng' };
-}
-
-function formatClassExamDate(value) {
-  if (!value) return 'Chưa đặt hạn';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Chưa đặt hạn';
-  return new Intl.DateTimeFormat('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date);
-}
 
 async function extractClassELearningDocxHtml(file) {
   const lowerName = String(file?.name || '').toLowerCase();
@@ -1319,119 +886,6 @@ async function extractClassELearningDocxHtml(file) {
     .filter(Boolean);
   const escapeHtml = (value) => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return paragraphs.map((text) => `<p>${escapeHtml(text)}</p>`).join('');
-}
-
-function ClassExamWorkspace({ selectedClass }) {
-  const page = useExamsPage();
-  const allExams = Array.isArray(page.exams) ? page.exams : [];
-  const visibleExams = Array.isArray(page.visibleExams) ? page.visibleExams : [];
-  const examCounts = useMemo(() => ({
-    total: allExams.length,
-    active: allExams.filter((exam) => exam.isActive).length,
-    draft: allExams.filter((exam) => exam.isUpcoming).length,
-    ended: allExams.filter((exam) => !exam.isActive && !exam.isUpcoming).length,
-  }), [allExams]);
-
-  if (page.roleLoading) {
-    return (
-      <div className="class-exam-page">
-        <section className="class-exam-head"><div><span>Đề thi · đồng bộ module Đề thi</span><h3>Đề thi</h3><p>Đang tải dữ liệu đề thi của giáo viên...</p></div></section>
-        <div className="class-exam-skeleton">{Array.from({ length: 5 }, (_, index) => <i key={index} />)}</div>
-      </div>
-    );
-  }
-
-  if (!page.canManage) {
-    return <div className="class-exam-page"><DataUnavailable icon="▤" text="Tài khoản hiện tại không có quyền quản lý đề thi." /></div>;
-  }
-
-  return (
-    <div className="class-exam-page">
-      <section className="class-exam-head">
-        <div>
-          <span>Đề thi · đồng bộ module Đề thi</span>
-          <h3>Đề thi</h3>
-          <p>Hiển thị trực tiếp các đề thi từ module Đề thi trong workspace lớp {selectedClass?.name || 'hiện tại'}.</p>
-        </div>
-        <div className="class-exam-head-actions">
-          <button type="button" className="class-exam-secondary-btn" onClick={() => window.location.assign('/exams')}>Mở trang Đề thi ↗</button>
-          <button type="button" className="class-exam-create-btn" onClick={page.openCreateModal}>＋ Tạo đề thi</button>
-        </div>
-      </section>
-
-      <section className="class-exam-stat-grid">
-        <article><span>▤</span><div><strong>{examCounts.total}</strong><small>Tổng đề thi</small></div></article>
-        <article className="active"><span>●</span><div><strong>{examCounts.active}</strong><small>Đang mở</small></div></article>
-        <article className="draft"><span>◷</span><div><strong>{examCounts.draft}</strong><small>Nháp / sắp mở</small></div></article>
-        <article className="ended"><span>✓</span><div><strong>{examCounts.ended}</strong><small>Đã đóng</small></div></article>
-      </section>
-
-      <section className="class-exam-toolbar">
-        <div className="class-exam-tabs" role="tablist" aria-label="Trạng thái đề thi">
-          {[['all','Tất cả'],['published','Đang mở'],['draft','Nháp'],['ended','Đã đóng']].map(([value, label]) => (
-            <button type="button" key={value} className={page.publishFilter === value ? 'active' : ''} onClick={() => page.setPublishFilter(value)}>{label}</button>
-          ))}
-        </div>
-        <div className="class-exam-filters">
-          <label className="class-exam-search"><span>⌕</span><input value={page.search || ''} onChange={(event) => page.setSearch(event.target.value)} placeholder="Tìm theo tên, môn học hoặc mã đề..." /></label>
-          <select value={page.privacyFilter || 'all'} onChange={(event) => page.setPrivacyFilter(event.target.value)} aria-label="Lọc quyền riêng tư">
-            <option value="all">Tất cả đề thi</option>
-            <option value="public">Công khai</option>
-            <option value="private">Riêng tư</option>
-          </select>
-        </div>
-      </section>
-
-      {visibleExams.length ? (
-        <section className="class-exam-table-wrap">
-          <div className="class-exam-table">
-            <div className="class-exam-row class-exam-row-head"><span>Tên đề thi</span><span>Môn</span><span>Loại</span><span>Thời gian</span><span>Hạn nộp</span><span>Trạng thái</span><span>Thao tác</span></div>
-            {visibleExams.map((exam) => {
-              const status = getClassExamStatus(exam);
-              return (
-                <div className="class-exam-row" key={exam.id}>
-                  <div className="class-exam-title"><strong>{exam.title || 'Đề thi chưa đặt tên'}</strong><small>{exam.questionCount || exam.questions?.length || 0} câu hỏi{Array.isArray(exam.studentResults) ? ` · ${exam.studentResults.length} học sinh` : ''}</small></div>
-                  <span>{exam.subject || '—'}</span>
-                  <span>{getClassExamTypeText(exam)}</span>
-                  <span>◷ {exam.duration || 45} phút</span>
-                  <span>{formatClassExamDate(exam.closeDate)}</span>
-                  <span><b className={`class-exam-status ${status.id}`}>{status.label}</b></span>
-                  <div className="class-exam-actions">
-                    <button type="button" title="Xem trước" aria-label="Xem trước đề thi" onClick={() => page.previewExam?.(exam)}>◉</button>
-                    <button type="button" title="Chỉnh sửa" aria-label="Chỉnh sửa đề thi" onClick={() => page.openEditModal?.(exam)}>✎</button>
-                    <button type="button" title="Sao chép liên kết" aria-label="Sao chép liên kết đề thi" onClick={() => page.copyExamLink?.(exam)}>⧉</button>
-                    <button type="button" className="danger" title="Xóa" aria-label="Xóa đề thi" onClick={() => page.setDeleteConfirmExam?.(exam)}>×</button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      ) : (
-        <section className="class-exam-empty"><span>▤</span><strong>Không tìm thấy đề thi phù hợp</strong><p>Thử đổi trạng thái, quyền riêng tư hoặc từ khóa tìm kiếm.</p></section>
-      )}
-
-      <CreateExamModal
-        open={Boolean(page.createOpen)}
-        onClose={page.closeCreateModal}
-        onSave={page.saveExam}
-        editingExam={page.editingExam}
-        teacherSubject={page.teacherSubject}
-        teacherName={page.teacherName}
-        availableClasses={page.classes || []}
-      />
-
-      {page.deleteConfirmExam ? (
-        <div className="modal-backdrop" onMouseDown={page.closeDeleteConfirm}>
-          <div className="class-modal class-exam-delete-modal" onMouseDown={(event) => event.stopPropagation()}>
-            <div className="modal-head"><div><p>Xác nhận xóa</p><h2>Xóa đề thi?</h2></div><button type="button" className="icon-btn" onClick={page.closeDeleteConfirm}>×</button></div>
-            <p className="class-exam-delete-copy">Bạn có chắc muốn xóa đề “{page.deleteConfirmExam.title || 'Chưa có tên'}” khỏi hệ thống Đề thi?</p>
-            <div className="modal-actions"><button type="button" className="ghost-btn" onClick={page.closeDeleteConfirm}>Hủy</button><button type="button" className="danger-btn" onClick={page.confirmDeleteExam}>Xóa đề thi</button></div>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
 }
 
 function TeacherClasses() {
@@ -1558,6 +1012,8 @@ function TeacherClasses() {
   const [deleteConfirmStep, setDeleteConfirmStep] = useState(1);
   const [deleteConfirmSeconds, setDeleteConfirmSeconds] = useState(10);
   const [teacherRowMenuId, setTeacherRowMenuId] = useState('');
+  const [attendancePermissionSavingId, setAttendancePermissionSavingId] = useState('');
+  const [attendancePermissionError, setAttendancePermissionError] = useState('');
   const [teacherDeleteOpen, setTeacherDeleteOpen] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState(null);
   const [deletingTeacher, setDeletingTeacher] = useState(false);
@@ -2460,7 +1916,11 @@ function TeacherClasses() {
     [classes, selectedClassId]
   );
 
-  const isClassOwner = Boolean(selectedClass?.teacherId && selectedClass.teacherId === currentUser?.uid);
+  const isClassOwner = Boolean(
+    selectedClass?.teacherId != null &&
+    currentUser?.uid != null &&
+    String(selectedClass.teacherId) === String(currentUser.uid)
+);
   const canDeleteClass = isClassOwner || isAdminUser;
   const canManageClassMembers = isClassOwner || isAdminUser;
 
@@ -2561,6 +2021,33 @@ function TeacherClasses() {
     if (!isClassOwner || !selectedClassId || !teacher?.id || teacher.owner) return;
     await classroomApi.updateMember(selectedClassId, teacher.id, { classRole: '' });
     setTeacherRowMenuId('');
+  };
+
+  const changeAttendancePermission = async (teacher) => {
+    if (!isClassOwner || !selectedClassId || !teacher?.id || teacher.owner || attendancePermissionSavingId) return;
+    const classId = selectedClassId;
+    const memberId = String(teacher.id);
+    const desired = teacher.canManageAttendance !== true;
+    setAttendancePermissionSavingId(memberId);
+    setAttendancePermissionError('');
+    try {
+      const result = await classroomApi.setAttendancePermission(classId, memberId, desired);
+      if (!result?.success || !result?.member || String(result.member.id) !== memberId) {
+        throw new Error('Máy chủ không trả về dữ liệu quyền điểm danh hợp lệ.');
+      }
+      setStudents((current) => current.map((member) => (
+        String(member.id) === memberId
+          ? { ...member, ...result.member }
+          : member
+      )));
+      setTeacherRowMenuId('');
+    } catch (error) {
+      setAttendancePermissionError(
+        error?.response?.data?.error || error?.message || 'Không thể cập nhật quyền điểm danh.'
+      );
+    } finally {
+      setAttendancePermissionSavingId('');
+    }
   };
 
   const openDeleteTeacher = (teacher) => {
@@ -5946,7 +5433,7 @@ function TeacherClasses() {
           parentName: row.parentName,
           parentPhone: row.parentPhone,
           role: profile.role || 'STUDENT',
-          photoURL: profile.photoURL || profile.photoUrl || profile.avatarUrl || profile.avatar || '',
+          photoURL: profile.customAvatar || profile.customAvatarUrl || profile.photoURL || profile.photoUrl || profile.avatarUrl || profile.avatar || '',
           status: 'active',
         })
       ));
@@ -6044,7 +5531,7 @@ function TeacherClasses() {
           parentName: row.parentName || '',
           parentPhone: row.parentPhone || '',
           role: profile.role || 'STUDENT',
-          photoURL: profile.photoURL || profile.photoUrl || profile.avatarUrl || profile.avatar || '',
+          photoURL: profile.customAvatar || profile.customAvatarUrl || profile.photoURL || profile.photoUrl || profile.avatarUrl || profile.avatar || '',
           status: 'active',
         })
       ));
@@ -6163,7 +5650,7 @@ function TeacherClasses() {
             name: profile.displayName || profile.name || profile.fullName || '',
             role: profile.role || 'STUDENT',
             gender: profile.gender || profile.sex || '',
-            photoURL: profile.photoURL || profile.photoUrl || profile.avatarUrl || profile.avatar || '',
+            photoURL: profile.customAvatar || profile.customAvatarUrl || profile.photoURL || profile.photoUrl || profile.avatarUrl || profile.avatar || '',
             status: 'active',
           })
         )
@@ -7241,7 +6728,7 @@ function TeacherClasses() {
   if (loading) {
     return (
       <main className="classes-page class-hub-page">
-        <section className="hub-top class-list-tools"><div className="class-search-box"><span>⌕</span><input placeholder="Tìm kiếm lớp học..." disabled /></div><button className="class-add-menu-btn" type="button" disabled>＋</button></section>
+        <section className="hub-top class-list-tools"><div className="class-search-box"><span>⌕</span><input value="" readOnly placeholder="Tìm kiếm lớp học..." disabled /></div><button className="class-add-menu-btn" type="button" disabled>＋</button></section>
         <section className="class-hub">
           <div className="class-card-grid">
             {[1, 2, 3].map((i) => (
@@ -7388,11 +6875,14 @@ function TeacherClasses() {
           <div className="workspace-user-card"><div className={`workspace-user-avatar ${currentTeacherAvatar ? 'has-image' : ''}`}>{currentTeacherAvatar ? <img src={currentTeacherAvatar} alt="" referrerPolicy="no-referrer" /> : getInitial(currentUser?.displayName || userDetails?.displayName || currentUser?.email || 'Giáo viên')}</div>{!sidebarCollapsed ? <div><strong>{currentUser?.displayName || userDetails?.displayName || currentUser?.email || 'Giáo viên'}</strong><span>{isInternTeacher ? 'Giáo viên thực tập' : 'Giáo viên'}</span></div> : null}</div>
         </aside>
         {workspaceMobileMenuOpen ? <button type="button" className="workspace-mobile-menu-backdrop" onClick={() => setWorkspaceMobileMenuOpen(false)} aria-label="Đóng menu lớp học" /> : null}
+        <nav className="workspace-mobile-navbar md:hidden" aria-label="Điều hướng quản lý lớp học">
+          {CLASS_WORKSPACE_ITEMS.map((item) => <button key={item.id} type="button" className={activeTab === item.id ? 'active' : ''} onClick={() => { setActiveTab(item.id); setWorkspaceMobileMenuOpen(false); }} aria-label={item.label}><span>{item.icon}</span><small>{item.label}</small></button>)}
+        </nav>
 
         <section className={`workspace-main ${activeTab === 'attendance' ? 'attendance-workspace-main' : ''}`}>
           <div className="workspace-content-head">
             <div className="workspace-content-title">
-              <button type="button" className="workspace-mobile-menu-btn" onClick={() => { setSidebarCollapsed(false); setSectionOpen({ main: true, secondary: true }); setWorkspaceMobileMenuOpen(true); }} aria-label="Mở menu lớp học">☰</button>
+              <span className="workspace-mobile-menu-btn" aria-hidden="true" />
               <button
                 className="workspace-back-btn"
                 type="button"
@@ -7440,20 +6930,13 @@ function TeacherClasses() {
 
               {internTeacherMembers.length ? <section className="intern-overview-panel"><div className="figma-panel-head"><div><h4>Giáo viên thực tập</h4><p>Điểm danh thực tập được tính riêng, không ảnh hưởng chuyên cần học sinh.</p></div><span>{internTeacherMembers.length} giáo viên</span></div><div className="intern-overview-grid">{internTeacherMembers.map((teacher) => { const metrics = getInternAttendanceMetrics(teacher); return <article key={teacher.id}><span className="mini-avatar">{getInitial(getStudentDisplayName(teacher))}</span><div><strong>{getStudentDisplayName(teacher)}</strong><small>{metrics.total ? `${metrics.present}/${metrics.total} buổi có mặt` : 'Chưa có dữ liệu điểm danh'}</small><i><b style={{ width: `${metrics.rate ?? 0}%` }} /></i></div><b>{metrics.rate === null ? '—' : `${metrics.rate}%`}</b></article>; })}</div></section> : null}
 
-              <section className="overview-chart-grid">
-                <article className="overview-chart-card">
-                  <div className="figma-panel-head"><div><h4>Phân bố kết quả học tập</h4><p>Giỏi, đạt và chưa đạt theo điểm trung bình</p></div></div>
-                  <DonutChart segments={scoreDistribution} centerValue={rankedScoreRows.filter((row) => row.average !== null).length || '—'} centerLabel="học sinh" />
-                </article>
-                <article className="overview-chart-card overview-chart-wide">
-                  <div className="figma-panel-head"><div><h4>Điểm danh {attendanceSummary.monthLabel}</h4><p>{attendanceSummary.monthRate === null ? 'Chưa có dữ liệu trong tháng hiện tại' : `Tỷ lệ có mặt: ${attendanceSummary.monthRate}%`}</p></div></div>
-                  <AttendanceMonthChart data={attendanceSummary.monthDays} monthLabel={attendanceSummary.monthLabel} />
-                </article>
-                <article className="overview-chart-card">
-                  <div className="figma-panel-head"><div><h4>Điểm danh tuần này</h4><p>Thứ hai đến chủ nhật · tự đổi khi sang tuần mới</p></div></div>
-                  <AttendanceWeekChart data={attendanceSummary.weekDays} />
-                </article>
-              </section>
+              <Suspense fallback={<div className="overview-chart-grid">Đang tải biểu đồ...</div>}>
+                <OverviewChartGrid
+                  scoreDistribution={scoreDistribution}
+                  scoredStudentCount={rankedScoreRows.filter((row) => row.average !== null).length}
+                  attendanceSummary={attendanceSummary}
+                />
+              </Suspense>
 
               <section className="overview-info-grid">
                 <article className="overview-detail-card subject-progress-card">
@@ -7510,7 +6993,7 @@ function TeacherClasses() {
               </section>
             </div>
           ) : activeTab === 'assignments' ? (
-            <ClassExamWorkspace selectedClass={selectedClass} />
+            <Suspense fallback={<div className="class-exam-page">Đang tải đề thi...</div>}><ClassExamWorkspace selectedClass={selectedClass} /></Suspense>
           ) : activeTab === 'attendance' ? (
             <div className="attendance-page">
               <section className="attendance-page-head">
@@ -7608,9 +7091,10 @@ function TeacherClasses() {
               </section>
               <section className="teacher-directory-section">
                 <div className="teacher-directory-head"><div><h4>Giáo viên</h4><p>Thành viên có vai trò giáo viên trong lớp</p></div><span>{teacherMembers.length} giáo viên</span></div>
+                {attendancePermissionError ? <p role="alert" style={{ color: '#dc2626' }}>{attendancePermissionError}</p> : null}
                 <div className="teacher-directory-table-wrap">
                   <table className="teacher-directory-table"><thead><tr><th>Giáo viên</th><th>Giới tính</th><th>Vai trò</th>{internTeacherMembers.length ? <th>Điểm danh thực tập</th> : null}<th /></tr></thead><tbody>
-                    {teacherMembers.length ? teacherMembers.map((teacher) => { const avatar = getStudentAvatar(teacher); const metrics = teacher.classRole === 'intern_teacher' ? getInternAttendanceMetrics(teacher) : null; const todayIntern = (Array.isArray(selectedAttendanceRecord?.internRecords) ? selectedAttendanceRecord.internRecords : []).find((item) => item.teacherId === teacher.id || item.uid === teacher.uid || normalizeText(item.email) === normalizeText(teacher.email)); return <tr key={teacher.id}><td><div className="teacher-name-cell"><span className={avatar ? 'has-image' : ''}>{avatar ? <img src={avatar} alt="" referrerPolicy="no-referrer" /> : getInitial(getStudentDisplayName(teacher))}</span><strong>{getStudentDisplayName(teacher)}</strong></div></td><td>{teacher.gender || teacher.sex || '—'}</td><td><span className="teacher-role-pill">{teacher.owner ? 'Giáo viên chủ lớp' : teacher.classRole === 'intern_teacher' ? 'Giáo viên thực tập' : 'Giáo viên'}</span></td>{internTeacherMembers.length ? <td>{teacher.classRole === 'intern_teacher' ? <div className="intern-attendance-cell"><div className="student-attendance-rate"><i><b style={{ width: `${metrics?.rate ?? 0}%` }} /></i><strong>{metrics?.rate === null ? '—' : `${metrics.rate}%`}</strong></div>{isClassOwner ? <div className="intern-attendance-actions"><button type="button" className={normalizeAttendanceStatus(todayIntern?.status) === 'present' ? 'active' : ''} onClick={() => saveInternAttendanceStatus(teacher, 'present')}>Có mặt</button><button type="button" className={normalizeAttendanceStatus(todayIntern?.status) === 'excused' ? 'active excused' : 'excused'} onClick={() => saveInternAttendanceStatus(teacher, 'excused')}>Vắng phép</button></div> : null}</div> : <span className="student-no-data">—</span>}</td> : null}<td>{isClassOwner && !teacher.owner ? <div className="student-row-menu-wrap"><button type="button" className="student-row-menu-btn" aria-label={`Mở thao tác cho ${getStudentDisplayName(teacher)}`} aria-expanded={teacherRowMenuId === teacher.id} onClick={() => { setStudentRowMenuId(''); setTeacherRowMenuId((id) => id === teacher.id ? '' : teacher.id); }}>•••</button>{teacherRowMenuId === teacher.id ? <div className="student-row-menu" onClick={(event) => event.stopPropagation()}>{teacher.classRole === 'intern_teacher' ? <button type="button" onClick={() => removeInternTeacherRole(teacher)}>Bỏ chức vụ thực tập</button> : <button type="button" onClick={() => setInternTeacherRole(teacher)}>Làm giáo viên thực tập</button>}<button type="button" className="danger" onClick={() => openDeleteTeacher(teacher)}>Xóa khỏi lớp</button></div> : null}</div> : null}</td></tr>; }) : <tr><td colSpan={internTeacherMembers.length ? 5 : 4} className="table-empty">Chưa có dữ liệu giáo viên trong lớp.</td></tr>}
+                    {teacherMembers.length ? teacherMembers.map((teacher) => { const avatar = getStudentAvatar(teacher); const metrics = teacher.classRole === 'intern_teacher' ? getInternAttendanceMetrics(teacher) : null; const todayIntern = (Array.isArray(selectedAttendanceRecord?.internRecords) ? selectedAttendanceRecord.internRecords : []).find((item) => item.teacherId === teacher.id || item.uid === teacher.uid || normalizeText(item.email) === normalizeText(teacher.email)); return <tr key={teacher.id}><td><div className="teacher-name-cell"><span className={avatar ? 'has-image' : ''}>{avatar ? <img src={avatar} alt="" referrerPolicy="no-referrer" /> : getInitial(getStudentDisplayName(teacher))}</span><strong>{getStudentDisplayName(teacher)}</strong></div></td><td>{teacher.gender || teacher.sex || '—'}</td><td><span className="teacher-role-pill">{teacher.owner ? 'Giáo viên chủ lớp' : teacher.classRole === 'intern_teacher' ? 'Giáo viên thực tập' : 'Giáo viên'}</span></td>{internTeacherMembers.length ? <td>{teacher.classRole === 'intern_teacher' ? <div className="intern-attendance-cell"><div className="student-attendance-rate"><i><b style={{ width: `${metrics?.rate ?? 0}%` }} /></i><strong>{metrics?.rate === null ? '—' : `${metrics.rate}%`}</strong></div>{isClassOwner ? <div className="intern-attendance-actions"><button type="button" className={normalizeAttendanceStatus(todayIntern?.status) === 'present' ? 'active' : ''} onClick={() => saveInternAttendanceStatus(teacher, 'present')}>Có mặt</button><button type="button" className={normalizeAttendanceStatus(todayIntern?.status) === 'excused' ? 'active excused' : 'excused'} onClick={() => saveInternAttendanceStatus(teacher, 'excused')}>Vắng phép</button></div> : null}</div> : <span className="student-no-data">—</span>}</td> : null}<td>{isClassOwner && !teacher.owner ? <div className="student-row-menu-wrap"><button type="button" className="student-row-menu-btn" aria-label={`Mở thao tác cho ${getStudentDisplayName(teacher)}`} aria-expanded={teacherRowMenuId === teacher.id} onClick={() => { setStudentRowMenuId(''); setTeacherRowMenuId((id) => id === teacher.id ? '' : teacher.id); }}>•••</button>{teacherRowMenuId === teacher.id ? <div className="student-row-menu" onClick={(event) => event.stopPropagation()}>{teacher.classRole === 'intern_teacher' ? <button type="button" onClick={() => removeInternTeacherRole(teacher)}>Bỏ chức vụ thực tập</button> : <button type="button" onClick={() => setInternTeacherRole(teacher)}>Làm giáo viên thực tập</button>}<button type="button" disabled={Boolean(attendancePermissionSavingId)} onClick={() => changeAttendancePermission(teacher)}>{attendancePermissionSavingId === String(teacher.id) ? 'Đang lưu...' : teacher.canManageAttendance === true ? 'Thu hồi quyền điểm danh' : 'Cấp quyền điểm danh'}</button><button type="button" className="danger" onClick={() => openDeleteTeacher(teacher)}>Xóa khỏi lớp</button></div> : null}</div> : null}</td></tr>; }) : <tr><td colSpan={internTeacherMembers.length ? 5 : 4} className="table-empty">Chưa có dữ liệu giáo viên trong lớp.</td></tr>}
                   </tbody></table>
                 </div>
               </section>
@@ -8016,7 +7500,7 @@ function TeacherClasses() {
 
       {eLearningCreateTypeOpen ? <div className="modal-backdrop class-elearning-create-type-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setELearningCreateTypeOpen(false); }}><section className="class-elearning-create-type-modal"><header><div><span>E-learning</span><h2>Chọn loại bài đăng</h2><p>Bài mới được preset quyền truy cập cho lớp {selectedClass?.name || 'hiện tại'}.</p></div><button type="button" onClick={() => setELearningCreateTypeOpen(false)} aria-label="Đóng">×</button></header><div className="class-elearning-create-type-grid"><button type="button" onClick={() => openClassELearningCreateForm('video')}><i>▶</i><strong>Video bài học</strong><span>YouTube, Lumi hoặc MP4 và danh sách bài.</span></button><button type="button" onClick={() => openClassELearningCreateForm('document')}><i>▤</i><strong>Tài liệu</strong><span>Soạn trực tiếp, Word/PDF hoặc ảnh tài liệu.</span></button><button type="button" onClick={() => openClassELearningCreateForm('simulation')}><i>✦</i><strong>Mô phỏng</strong><span>Nhúng mô phỏng hoặc tạo nội dung tương tác bằng code.</span></button></div></section></div> : null}
 
-      {eLearningCreateOpen ? <CourseFormModal form={eLearningCreateForm} setForm={setELearningCreateForm} editingCourse={null} contentType={eLearningCreateType} teacherClasses={classes.map((item) => item.name || item.className || '').filter(Boolean)} participatingClasses={classes} uploadingWord={eLearningCreateUploadingWord} uploadingVideo={eLearningCreateUploadingVideo} uploadingImage={eLearningCreateUploadingImage} lessonsRef={eLearningCreateLessonsRef} publisherName={eLearningPublisherName} onClose={() => { if (!eLearningCreatePublishing) setELearningCreateOpen(false); }} onReset={resetClassELearningCreateForm} onSubmit={publishClassELearningCourse} onWordUpload={handleClassELearningWordUpload} onVideoUpload={handleClassELearningVideoUpload} onImageUpload={handleClassELearningImageUpload} /> : null}
+      {eLearningCreateOpen ? <Suspense fallback={null}><CourseFormModal form={eLearningCreateForm} setForm={setELearningCreateForm} editingCourse={null} contentType={eLearningCreateType} teacherClasses={classes.map((item) => item.name || item.className || '').filter(Boolean)} participatingClasses={classes} uploadingWord={eLearningCreateUploadingWord} uploadingVideo={eLearningCreateUploadingVideo} uploadingImage={eLearningCreateUploadingImage} lessonsRef={eLearningCreateLessonsRef} publisherName={eLearningPublisherName} onClose={() => { if (!eLearningCreatePublishing) setELearningCreateOpen(false); }} onReset={resetClassELearningCreateForm} onSubmit={publishClassELearningCourse} onWordUpload={handleClassELearningWordUpload} onVideoUpload={handleClassELearningVideoUpload} onImageUpload={handleClassELearningImageUpload} /></Suspense> : null}
       <style>{styles}</style>
     </main>
   );

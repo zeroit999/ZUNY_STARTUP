@@ -501,8 +501,8 @@ function ExamRepositoryTable({ page, isStudent }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-white/5">
       <div className="overflow-x-auto">
-        <div className="min-w-[980px]">
-          <div className={`grid ${isStudent ? 'grid-cols-[2.2fr_1fr_1.35fr_0.8fr_1fr_0.9fr_90px]' : 'grid-cols-[2.2fr_1fr_1.35fr_0.8fr_1fr_0.9fr_120px]'} items-center gap-4 bg-slate-50 px-6 py-4 text-[11px] font-black uppercase tracking-[0.05em] text-slate-500 dark:bg-white/5 dark:text-slate-400`}>
+        <div className="min-w-0 lg:min-w-[980px]">
+          <div className={`hidden lg:grid ${isStudent ? 'grid-cols-[2.2fr_1fr_1.35fr_0.8fr_1fr_0.9fr_90px]' : 'grid-cols-[2.2fr_1fr_1.35fr_0.8fr_1fr_0.9fr_120px]'} items-center gap-4 bg-slate-50 px-6 py-4 text-[11px] font-black uppercase tracking-[0.05em] text-slate-500 dark:bg-white/5 dark:text-slate-400`}>
             <span>Tên đề thi</span>
             <span>Môn</span>
             <span>Loại</span>
@@ -516,7 +516,7 @@ function ExamRepositoryTable({ page, isStudent }) {
             {page.visibleExams.map((exam) => (
               <div
                 key={exam.id}
-                className={`grid ${isStudent ? 'grid-cols-[2.2fr_1fr_1.35fr_0.8fr_1fr_0.9fr_90px]' : 'grid-cols-[2.2fr_1fr_1.35fr_0.8fr_1fr_0.9fr_120px]'} items-center gap-4 px-6 py-4 transition hover:bg-slate-50/80 dark:hover:bg-white/[0.04]`}
+                className={`flex flex-col lg:grid ${isStudent ? 'grid-cols-[2.2fr_1fr_1.35fr_0.8fr_1fr_0.9fr_90px]' : 'grid-cols-[2.2fr_1fr_1.35fr_0.8fr_1fr_0.9fr_120px]'} items-center gap-4 px-4 py-4 sm:px-6 transition hover:bg-slate-50/80 dark:hover:bg-white/[0.04]`}
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-slate-800 dark:text-white">
@@ -527,13 +527,13 @@ function ExamRepositoryTable({ page, isStudent }) {
                     {!isStudent ? ` · ${exam.studentResults?.length || 0} học sinh` : ''}
                   </p>
                 </div>
-                <span className="truncate text-sm font-medium text-slate-600 dark:text-slate-300">{exam.subject || '—'}</span>
-                <span className="truncate text-sm font-medium text-slate-600 dark:text-slate-300">{getExamTypeText(exam)}</span>
-                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-300"><Clock3 className="h-3.5 w-3.5 text-slate-400" />{exam.duration || 45} phút</span>
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{formatDate(exam.closeDate)}</span>
+                <span className="truncate text-sm font-medium text-slate-600 dark:text-slate-300"><span className="mr-2 font-bold lg:hidden">Môn:</span>{exam.subject || '—'}</span>
+                <span className="truncate text-sm font-medium text-slate-600 dark:text-slate-300"><span className="mr-2 font-bold lg:hidden">Loại:</span>{getExamTypeText(exam)}</span>
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-300"><Clock3 className="h-3.5 w-3.5 text-slate-400" /><span className="font-bold lg:hidden">Thời gian:</span>{exam.duration || 45} phút</span>
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-300"><span className="mr-2 font-bold lg:hidden">Hạn nộp:</span>{formatDate(exam.closeDate)}</span>
                 <ExamStatusBadge exam={exam} />
 
-                <div className="flex items-center justify-end gap-1">
+                <div className="flex flex-wrap items-center justify-start gap-1 border-t border-slate-100 pt-3 dark:border-white/10 lg:justify-end lg:border-0 lg:pt-0">
                   {isStudent ? (
                     <button
                       type="button"
@@ -609,7 +609,7 @@ function RepositorySection({ page, isStudent }) {
       <div className="flex flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_4px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/5 xl:flex-row xl:items-center xl:justify-between">
         <RepositoryTabs page={page} />
         <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto">
-          <div className="flex min-w-[280px] flex-1 items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-2.5 dark:border-white/10 dark:bg-slate-900">
+          <div className="flex w-full min-w-0 flex-1 items-center gap-3 sm:min-w-[280px] rounded-xl border border-slate-200 bg-white px-4 py-2.5 dark:border-white/10 dark:bg-slate-900">
             <Search className="h-4 w-4 text-slate-400" />
             <input
               value={page.search}

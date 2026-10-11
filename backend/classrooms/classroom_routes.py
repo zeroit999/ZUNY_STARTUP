@@ -331,6 +331,7 @@ def serialize_member(
     )
 
     data.update({
+        "canManageAttendance": (member.member_data or {}).get("canManageAttendance") is True,
         "id":
             str(
                 member.id
@@ -599,6 +600,24 @@ def can_teach_class(
         or class_role
         == "intern_teacher"
     )
+
+def can_manage_attendance(classroom, user):
+    """Attendance-only permission, independent of general teaching rights."""
+    if not classroom or not user:
+        return False
+    if is_admin(user) or is_class_owner(classroom, user):
+        return True
+    if not is_teacher(user):
+        return False
+    member = find_member_for_user(classroom.id, user)
+    return bool(
+        member
+        and member.user_id is not None
+        and int(member.user_id) == int(user.id)
+        and normalize_text(member.status).lower() == "active"
+        and (member.member_data or {}).get("canManageAttendance") is True
+    )
+
 
 def is_active_class_member(member):
     return bool(
@@ -2023,13 +2042,14 @@ def add_member(
                 "Email không tồn tại trong hệ thống.",
         }), 404
 
-    role = normalize_text(
-        data.get(
-            "role"
-        )
-        or user.role
-        or "STUDENT"
-    ).upper()
+    role = normalize_text(user.role or "STUDENT").upper()
+    requested_class_role = normalize_text(data.get("classRole"))
+    if requested_class_role not in {"", "intern_teacher"}:
+        return jsonify({"success": False, "error": "Vai trò lớp không hợp lệ."}), 400
+    if requested_class_role and not (
+        is_admin(actor) or is_class_owner(classroom, actor)
+    ):
+        return jsonify({"success": False, "error": "Forbidden"}), 403
 
     profile = dict(
         user.profile_data
@@ -2077,11 +2097,7 @@ def add_member(
             role,
 
         class_role=
-            normalize_text(
-                data.get(
-                    "classRole"
-                )
-            ),
+            requested_class_role,
 
         student_code=
             normalize_text(
@@ -2198,7 +2214,7 @@ def add_member(
             key: value
             for key, value
             in data.items()
-            if key not in known
+            if key not in known and key not in {"canManageAttendance", "owner"}
         },
     )
 
@@ -2350,6 +2366,10 @@ def update_member(
             "status",
     }
 
+    privileged_actor = is_admin(actor) or is_class_owner(classroom, actor)
+    if not privileged_actor and any(key in data for key in ("role", "classRole", "status", "email")):
+        return jsonify({"success": False, "error": "Forbidden"}), 403
+
     for key, attribute in normal_fields.items():
         if key not in data:
             continue
@@ -2378,24 +2398,23 @@ def update_member(
             value,
         )
 
-    # Role/classRole chỉ giáo viên quản lý.
-    if can_teach_class(
-        classroom,
-        actor,
-    ):
+    # Only the class owner/admin can change privilege-bearing roles.
+    if privileged_actor:
         if "role" in data:
-            member.role = normalize_text(
-                data.get(
-                    "role"
-                )
-            ).upper()
-
+            requested_role = normalize_text(data["role"]).upper()
+            account = db.session.get(User, member.user_id) if member.user_id else None
+            if account and requested_role != normalize_text(account.role).upper():
+                return jsonify({"success": False, "error": "Vai trò phải khớp tài khoản."}), 400
+            if requested_role not in {"STUDENT", "TEACHER", "ADMIN_DEV"}:
+                return jsonify({"success": False, "error": "Vai trò không hợp lệ."}), 400
+            member.role = requested_role
         if "classRole" in data:
-            member.class_role = normalize_text(
-                data.get(
-                    "classRole"
-                )
-            )
+            requested_class_role = normalize_text(data["classRole"])
+            if requested_class_role not in {"", "intern_teacher"}:
+                return jsonify({"success": False, "error": "Vai trò lớp không hợp lệ."}), 400
+            if is_class_owner(classroom, db.session.get(User, member.user_id)) if member.user_id else False:
+                return jsonify({"success": False, "error": "Không thể đổi vai trò chủ lớp."}), 403
+            member.class_role = requested_class_role
 
     known = {
         *normal_fields.keys(),
@@ -2413,7 +2432,7 @@ def update_member(
     )
 
     for key, value in data.items():
-        if key in known:
+        if key in known or key in {"canManageAttendance", "owner"}:
             continue
 
         extra[
@@ -2437,6 +2456,46 @@ def update_member(
                 member
             ),
     }), 200
+
+
+# =========================================================
+# ATTENDANCE PERMISSION (OWNER / ADMIN ONLY)
+# =========================================================
+
+@classroom_bp.patch(
+    "/<int:classroom_id>/members/<int:member_id>/attendance-permission"
+)
+@auth_required
+@rate_limit(limit=60, window=3600, per_user=True)
+def update_attendance_permission(classroom_id, member_id):
+    actor = current_user()
+    classroom = db.session.get(Classroom, classroom_id)
+    if not classroom:
+        return jsonify({"success": False, "error": "Lớp học không tồn tại."}), 404
+    if not (is_admin(actor) or is_class_owner(classroom, actor)):
+        return jsonify({"success": False, "error": "Forbidden"}), 403
+
+    member = db.session.get(ClassroomMember, member_id)
+    if not member or int(member.classroom_id) != int(classroom_id):
+        return jsonify({"success": False, "error": "Thành viên không tồn tại."}), 404
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or type(data.get("canManageAttendance")) is not bool:
+        return jsonify({"success": False, "error": "canManageAttendance phải là boolean."}), 400
+    if set(data) != {"canManageAttendance"}:
+        return jsonify({"success": False, "error": "Dữ liệu quyền không hợp lệ."}), 400
+    if not member.user_id or normalize_text(member.status).lower() != "active":
+        return jsonify({"success": False, "error": "Thành viên phải có tài khoản đang hoạt động."}), 400
+    target = db.session.get(User, member.user_id)
+    if not target or not is_teacher(target):
+        return jsonify({"success": False, "error": "Chỉ cấp quyền cho tài khoản giáo viên."}), 400
+    if is_class_owner(classroom, target):
+        return jsonify({"success": False, "error": "Chủ lớp đã có quyền điểm danh."}), 409
+
+    extra = dict(member.member_data or {})
+    extra["canManageAttendance"] = data["canManageAttendance"]
+    member.member_data = extra
+    db.session.commit()
+    return jsonify({"success": True, "member": serialize_member(member)}), 200
 
 
 # =========================================================
@@ -3205,7 +3264,7 @@ def update_attendance(
                 "Lớp học không tồn tại.",
         }), 404
 
-    if not can_teach_class(
+    if not can_manage_attendance(
         classroom,
         actor,
     ):
@@ -3655,7 +3714,7 @@ def create_attendance_qr(
                 "Lớp học không tồn tại.",
         }), 404
 
-    if not can_teach_class(
+    if not can_manage_attendance(
         classroom,
         actor,
     ):

@@ -1,51 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
+import apiClient from '../../../../utils/apiClient.js'
 
 async function apiRequest(path, {
   method = 'GET',
   body,
 } = {}) {
-  const token =
-    localStorage.getItem('access_token') ||
-    localStorage.getItem('accessToken') ||
-    localStorage.getItem('token') ||
-    ''
+  const normalizedPath = path.startsWith('/api/')
+    ? path.slice(4)
+    : path
 
-  const headers = {
-    'Content-Type': 'application/json',
-  }
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await apiClient.request({
+    url: normalizedPath,
     method,
-    headers,
-    credentials: 'include',
-    body: body == null ? undefined : JSON.stringify(body),
+    ...(body == null ? {} : { data: body }),
   })
 
-  let data = null
-
-  try {
-    data = await response.json()
-  } catch {
-    data = null
-  }
-
-  if (!response.ok) {
-    const error = new Error(
-      data?.message ||
-      data?.error ||
-      `API request failed (${response.status})`,
-    )
-    error.status = response.status
-    error.code = data?.error || ''
-    error.retryAfter = Number(data?.retryAfter || 0)
-    throw error
-  }
-
-  return data
+  return response?.data || {}
 }
 
 async function getCourseProgress(courseId) {
@@ -898,7 +868,6 @@ export function YoutubeProgressPlayer({
 
 
   const fitClass = 'aspect-video w-[min(100%,calc((100dvh-150px)*16/9))] max-h-[calc(100dvh-150px)] lg:h-[min(500px,calc(100dvh-180px))] lg:w-[min(100%,800px)] lg:aspect-auto lg:max-h-none 2xl:h-[min(680px,calc(100dvh-160px))] 2xl:w-[min(100%,1100px)]'
-  const progressCacheRef = useRef(null)
 
   return (
     <div className="flex w-full flex-col items-center justify-center bg-black">
@@ -924,6 +893,7 @@ function Mp4LearningPlayer({ src, autoPlay, onEnded, courseId, currentUser, curr
   const lastTimeRef = useRef(0)
   const violationCountRef = useRef(0)
   const warningActiveRef = useRef(false)
+  const progressCacheRef = useRef(null)
   const [progressText, setProgressText] = useState('Đang tải tiến trình đã lưu...')
   const [progressValue, setProgressValue] = useState(0)
   const fitClass = 'aspect-video w-[min(100%,calc((100dvh-150px)*16/9))] max-h-[calc(100dvh-150px)] lg:h-[min(500px,calc(100dvh-180px))] lg:w-[min(100%,800px)] lg:aspect-auto lg:max-h-none 2xl:h-[min(680px,calc(100dvh-160px))] 2xl:w-[min(100%,1100px)]'
@@ -1533,6 +1503,20 @@ export function RatingStars({
     </section>
   )
 }
+function CppNote() {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-white/10 dark:bg-slate-950">
+      <div className="text-xs font-bold uppercase tracking-[0.25em] text-sky-600 dark:text-sky-300">
+        C++ — Mã nguồn tham khảo
+      </div>
+      <p className="mt-4 text-sm leading-6 text-slate-700 dark:text-slate-300">
+        Bạn có thể xem và sao chép mã nguồn C++ để biên dịch bằng trình biên dịch phù hợp.
+        Trang bài học hiện không hỗ trợ chạy trực tiếp mã C++.
+      </p>
+    </div>
+  )
+}
+
 export function CodeRunner({ code }) {
   const [output, setOutput] = useState('Ấn "Chạy code" để xem console.')
 

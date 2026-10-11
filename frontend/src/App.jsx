@@ -14,7 +14,7 @@ import { Toaster } from 'react-hot-toast';
 
 import AppLayout from './components/layout/AppLayout.jsx';
 import LoadingSkeleton from './components/ui/LoadingSkeleton.jsx';
-import ChatbotWidget from './components/ChatbotAI/ChatbotWidget.jsx';
+const ChatbotWidget = lazy(() => import('./components/ChatbotAI/ChatbotWidget.jsx'));
 
 const Home = lazy(() => import('./pages/Home.jsx'))
 const Exams = lazy(() => import('./pages/exam/Exams.jsx'))
@@ -27,16 +27,16 @@ const Forum = lazy(() => import('./pages/forum/Forum.jsx'))
 const ELearning = lazy(() => import('./pages/e-learning/E-learning.jsx'))
 const ELearningDetail = lazy(() => import('./pages/e-learning/E-learningDetail.jsx'))
 const LearningPage = lazy(() => import('./pages/learning/LearningPage.jsx'))
-import Classes from './pages/learning/Classes.jsx';
-import Setup from './pages/setup/Setup.jsx';
-import NotFound from './pages/NotFound.jsx';
+const Classes = lazy(() => import('./pages/learning/Classes.jsx'));
+const Setup = lazy(() => import('./pages/setup/Setup.jsx'));
+const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 const Setting = lazy(() => import('./pages/setting/Setting.jsx'))
 
-import Login from './components/Signpage/login.jsx';
-import Register from './components/Signpage/register.jsx';
-import VerifyEmail from './components/Signpage/VerifyEmail.jsx';
-import ForgotPassword from './components/Signpage/ForgotPassword.jsx';
-import Profile from './components/Signpage/profile.jsx';
+const Login = lazy(() => import('./components/Signpage/login.jsx'));
+const Register = lazy(() => import('./components/Signpage/register.jsx'));
+const VerifyEmail = lazy(() => import('./components/Signpage/VerifyEmail.jsx'));
+const ForgotPassword = lazy(() => import('./components/Signpage/ForgotPassword.jsx'));
+const Profile = lazy(() => import('./components/Signpage/profile.jsx'));
 
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 
@@ -100,7 +100,11 @@ function RouteAwareChatbot() {
     return null;
   }
 
-  return <ChatbotWidget />;
+  return (
+    <Suspense fallback={null}>
+      <ChatbotWidget />
+    </Suspense>
+  );
 }
 
 function ProtectedRoute({ children }) {
@@ -239,18 +243,19 @@ function AppContent({ darkMode, onToggleDarkMode }) {
         darkMode={darkMode}
         onToggleDarkMode={onToggleDarkMode}
         mainClassName={
-          isAuthRoute ||
-          isForgotPasswordRoute ||
-          isExamRoomRoute ||
-          isHomeRoute ||
-          isELearningLibraryRoute ||
-          isELearningDetailRoute ||
-          isLearningPageRoute ||
-          isSettingsRoute ||
           isForumRoute
-            ? 'pt-0'
-            : forumChannelOpen
-              ? 'h-screen pt-20'
+            ? forumChannelOpen
+              ? 'h-[calc(100dvh-5rem)] overflow-hidden pt-20'
+              : 'pt-24'
+            : isAuthRoute ||
+              isForgotPasswordRoute ||
+              isExamRoomRoute ||
+              isHomeRoute ||
+              isELearningLibraryRoute ||
+              isELearningDetailRoute ||
+              isLearningPageRoute ||
+              isSettingsRoute
+              ? 'pt-0'
               : 'pt-20'
         }
         showFooter={normalizedPath === '/'}
@@ -266,6 +271,7 @@ function AppContent({ darkMode, onToggleDarkMode }) {
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.28, ease: 'easeOut' }}
           >
+            <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Đang tải...</div>}>
             <Routes location={location}>
               <Route path="/" element={<Home />} />
               <Route path="/home" element={<Navigate to="/" replace />} />
@@ -408,6 +414,7 @@ function AppContent({ darkMode, onToggleDarkMode }) {
 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </AppLayout>
