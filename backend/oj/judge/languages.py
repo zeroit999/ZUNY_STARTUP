@@ -27,33 +27,7 @@ LANGUAGES = {
         ],
     },
 
-    "JAVA21": {
-        "source_file": "Main.java",
-        "compile": [
-            "javac",
-            "-encoding",
-            "UTF-8",
-            "-d",
-            "/workspace",
-            "/workspace/Main.java",
-        ],
-        "run": [
-            "java",
-            "-Xss16m",
-            "-cp",
-            "/workspace",
-            "Main",
-        ],
-    },
 
-    "JAVASCRIPT": {
-        "source_file": "main.js",
-        "compile": None,
-        "run": [
-            "node",
-            "/workspace/main.js",
-        ],
-    },
 }
 
 

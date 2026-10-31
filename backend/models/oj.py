@@ -7,6 +7,40 @@ def utc_now():
     return datetime.now(timezone.utc)
 
 
+class OJContest(db.Model):
+    __tablename__ = "oj_contests"
+
+    id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    title = db.Column(db.String(300), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    starts_at = db.Column(db.DateTime(timezone=True), nullable=True)
+    ends_at = db.Column(db.DateTime(timezone=True), nullable=True)
+    status = db.Column(db.String(30), nullable=False, default="DRAFT", index=True)
+    created_by = db.Column(db.BigInteger, db.ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now)
+
+    __table_args__ = (
+        db.CheckConstraint("status IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')", name="ck_oj_contests_status"),
+        db.CheckConstraint("ends_at IS NULL OR starts_at IS NULL OR ends_at > starts_at", name="ck_oj_contests_dates"),
+    )
+
+
+class OJContestProblem(db.Model):
+    __tablename__ = "oj_contest_problems"
+
+    id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    contest_id = db.Column(db.BigInteger, db.ForeignKey("oj_contests.id", ondelete="CASCADE"), nullable=False, index=True)
+    problem_id = db.Column(db.BigInteger, db.ForeignKey("oj_problems.id", ondelete="CASCADE"), nullable=False, index=True)
+    position = db.Column(db.Integer, nullable=False, default=1)
+    points = db.Column(db.Integer, nullable=False, default=100)
+
+    __table_args__ = (
+        db.UniqueConstraint("contest_id", "problem_id", name="uq_oj_contest_problem"),
+        db.UniqueConstraint("contest_id", "position", name="uq_oj_contest_position"),
+    )
+
+
 class OJProblem(db.Model):
     __tablename__ = "oj_problems"
 
@@ -300,7 +334,7 @@ class OJSubmission(db.Model):
 
     __table_args__ = (
         db.CheckConstraint(
-            "language IN ('CPP23', 'PYTHON314', 'JAVA21', 'JAVASCRIPT')",
+            "language IN ('CPP23', 'PYTHON314')",
             name="ck_oj_submissions_language",
         ),
         db.CheckConstraint(
@@ -393,3 +427,18 @@ class OJSubmissionResult(db.Model):
             name="uq_oj_submission_result_position",
         ),
     )
+
+
+class OJProblemReview(db.Model):
+    __tablename__ = "oj_problem_reviews"
+    id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    problem_id = db.Column(db.BigInteger, db.ForeignKey("oj_problems.id", ondelete="CASCADE"), nullable=False, index=True)
+    requested_by = db.Column(db.BigInteger, db.ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    reviewed_by = db.Column(db.BigInteger, db.ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    state = db.Column(db.String(30), nullable=False, default="PENDING_REVIEW", index=True)
+    snapshot = db.Column(db.JSON, nullable=False)
+    base_updated_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    review_note = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
+    reviewed_at = db.Column(db.DateTime(timezone=True), nullable=True)
+    __table_args__ = (db.CheckConstraint("state IN ('PENDING_REVIEW', 'APPROVED', 'REJECTED')", name="ck_oj_problem_reviews_state"),)

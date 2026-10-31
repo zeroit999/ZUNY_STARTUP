@@ -16,6 +16,13 @@ from oj.oj_service import (
     get_submission_detail,
     update_problem,
     update_testcase,
+    replace_problem_testcases,
+    submit_problem_review,
+    list_problem_reviews,
+    decide_problem_review,
+    list_contests,
+    create_contest,
+    update_contest,
 )
 
 
@@ -51,6 +58,37 @@ def get_problems_route():
                 request.current_user
             )
         ), 200
+    except Exception as error:
+        return error_response(error)
+
+
+@oj_bp.get("/contests")
+@auth_required
+def list_contests_route():
+    try:
+        return jsonify(list_contests(request.current_user)), 200
+    except Exception as error:
+        return error_response(error)
+
+
+@oj_bp.post("/contests")
+@auth_required
+def create_contest_route():
+    return jsonify({"success": False, "message": "Cuộc thi đang bảo trì."}), 503
+
+    try:
+        return jsonify(create_contest(request.current_user, request.get_json(silent=True) or {})), 201
+    except Exception as error:
+        return error_response(error)
+
+
+@oj_bp.put("/contests/<int:contest_id>")
+@auth_required
+def update_contest_route(contest_id):
+    return jsonify({"success": False, "message": "Cuộc thi đang bảo trì."}), 503
+
+    try:
+        return jsonify(update_contest(request.current_user, contest_id, request.get_json(silent=True) or {})), 200
     except Exception as error:
         return error_response(error)
 
@@ -108,6 +146,22 @@ def update_testcase_route(
                 problem_id,
                 testcase_id,
                 payload,
+            )
+        ), 200
+    except Exception as error:
+        return error_response(error)
+
+
+
+@oj_bp.put("/manage/problems/<int:problem_id>/testcases")
+@auth_required
+def replace_problem_testcases_route(problem_id):
+    try:
+        return jsonify(
+            replace_problem_testcases(
+                request.current_user,
+                problem_id,
+                request.get_json(silent=True) or {},
             )
         ), 200
     except Exception as error:
@@ -264,5 +318,30 @@ def analyze_submission_route(submission_id):
                 submission_id,
             )
         ), 200
+    except Exception as error:
+        return error_response(error)
+
+
+@oj_bp.post("/manage/problems/<int:problem_id>/review")
+@auth_required
+def submit_problem_review_route(problem_id):
+    try:
+        return jsonify(submit_problem_review(request.current_user, problem_id, request.get_json(silent=True) or {})), 200
+    except Exception as error:
+        return error_response(error)
+
+@oj_bp.get("/manage/reviews")
+@auth_required
+def list_problem_reviews_route():
+    try:
+        return jsonify(list_problem_reviews(request.current_user)), 200
+    except Exception as error:
+        return error_response(error)
+
+@oj_bp.post("/manage/reviews/<int:review_id>/decision")
+@auth_required
+def decide_problem_review_route(review_id):
+    try:
+        return jsonify(decide_problem_review(request.current_user, review_id, request.get_json(silent=True) or {})), 200
     except Exception as error:
         return error_response(error)

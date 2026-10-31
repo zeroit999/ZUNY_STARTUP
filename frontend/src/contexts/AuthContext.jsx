@@ -213,7 +213,7 @@ export function AuthProvider({
 
   const canManageOJ =
     isAdminDev ||
-    isInformaticsTeacher
+    normalizedRole === 'teacher'
 
   return (
     <AuthContext.Provider

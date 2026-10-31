@@ -1702,9 +1702,9 @@ function Forum({ onChannelViewChange = () => { } }) {
   }
 
   return (
-    <div className={`${dark ? 'dark' : ''} min-h-full [&_button]:cursor-pointer [&_select]:cursor-pointer [&_label]:cursor-pointer`}>
-      <main className="min-h-full bg-slate-50 text-slate-950 transition dark:bg-[#020617] dark:text-white">
-        <div className="relative flex min-h-full">
+    <div className={`${dark ? 'dark' : ''} h-full [&_button]:cursor-pointer [&_select]:cursor-pointer [&_label]:cursor-pointer`}>
+      <main className="h-full overflow-hidden bg-slate-50 text-slate-950 transition dark:bg-[#020617] dark:text-white">
+        <div className="relative flex h-full min-h-0">
           <Sidebar activeSection={activeSection} roleKey={roleKey} unreadNotificationsCount={unreadNotificationsCount} pendingReviewCount={pendingReviewCount} onExpandedChange={setSidebarExpanded} onChange={(section) => { changeForumSection(section); setFilter('all'); setMobileMenuOpen(false) }} dark={dark} onToggleDark={() => setManualDark((value) => !(value ?? syncedDark))} mobileOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
 
           <div className={`min-h-full min-w-0 flex-1 transition-[margin] duration-300 ${sidebarExpanded ? 'lg:ml-72' : 'lg:ml-24'}`}>
@@ -1744,7 +1744,7 @@ function Forum({ onChannelViewChange = () => { } }) {
                 />
               </Suspense>
             ) : (
-              <section className="min-h-full min-w-0 flex-1 overflow-visible pb-24 lg:pb-8">
+              <section className="h-full min-h-0 min-w-0 flex-1 overflow-y-auto pb-24 lg:pb-8">
 
                 <div className={`mx-auto grid w-full max-w-7xl gap-4 px-3 py-3 sm:px-4 sm:py-4 lg:px-6 ${activeSection === SECTIONS.HALL ? "xl:grid-cols-[minmax(0,1fr)_300px]" : "grid-cols-1"}`}>
                   <div className="min-w-0">

@@ -714,6 +714,7 @@ function ImageLightbox({ image, onClose }) {
 
 export default function DiscordGroupsLayout({ groups, currentUser, displayName, initials, avatarUrl = '', roleKey, userClass = '', initialActiveGroupId = '', onJoin, onDelete, onCreate, groupReports = [], onReportGroup = () => { }, onAdminJoinReportedGroup = () => { }, onChannelViewChange = () => { } }) {
   const [activeGroupId, setActiveGroupId] = useState(null)
+  const handledInitialGroupIdRef = useRef('')
 
   useEffect(() => {
     onChannelViewChange(Boolean(activeGroupId))
@@ -722,7 +723,7 @@ export default function DiscordGroupsLayout({ groups, currentUser, displayName, 
   const [optimisticJoinedGroupIds, setOptimisticJoinedGroupIds] = useState([])
 
   useEffect(() => {
-    if (!initialActiveGroupId) return
+    if (!initialActiveGroupId || handledInitialGroupIdRef.current === initialActiveGroupId) return
 
     const targetGroup = groups.find((group) => group.id === initialActiveGroupId)
     if (!targetGroup) return
@@ -737,6 +738,7 @@ export default function DiscordGroupsLayout({ groups, currentUser, displayName, 
 
     setActiveGroupId(targetGroup.id)
     setActiveChannelId(firstChannel?.id || 'thao-luan')
+    handledInitialGroupIdRef.current = initialActiveGroupId
   }, [initialActiveGroupId, groups])
   const [activeChannelId, setActiveChannelId] = useState('thao-luan')
 
@@ -2659,7 +2661,7 @@ export default function DiscordGroupsLayout({ groups, currentUser, displayName, 
   }
 
   return (
-    <div className="relative flex h-full max-h-full min-h-0 flex-1 overflow-hidden bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
+    <div className="relative flex h-full max-h-full min-h-0 flex-1 self-stretch overflow-hidden bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-white">
       {/* Group avatar sidebar */}
       <div className="hidden w-[72px] shrink-0 flex-col items-center gap-2 overflow-y-auto border-r border-slate-200 bg-white py-3 dark:border-white/10 dark:bg-slate-950 lg:flex">
         <button type="button" title="Khám phá nhóm" onClick={() => { setGroupMenuOpen(false); setGroupSettingsOpen(false); setActiveGroupId(null); setActiveChannelId('thao-luan') }} className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-xl text-white shadow-lg transition hover:rounded-[14px]">🌍</button>
@@ -2700,14 +2702,14 @@ export default function DiscordGroupsLayout({ groups, currentUser, displayName, 
           type="button"
           aria-label="Đóng danh sách kênh"
           onClick={() => setMobileChannelSidebarOpen(false)}
-          className="fixed inset-0 z-[115] bg-slate-950/60 backdrop-blur-sm lg:hidden"
+          className="fixed bottom-0 left-0 right-0 top-20 z-[115] bg-slate-950/60 backdrop-blur-sm lg:hidden"
         />
       )}
 
       {/* Channel sidebar */}
       <div onMouseEnter={() => setDesktopChannelSidebarHovered(true)}
         onMouseLeave={() => setDesktopChannelSidebarHovered(false)}
-        className={`fixed inset-y-0 left-0 z-[120] flex w-[min(88vw,350px)] shrink-0 flex-col border-r border-slate-200 bg-white shadow-2xl transition-[width,transform] duration-300 dark:border-white/10 dark:bg-slate-900 lg:absolute lg:inset-y-0 lg:left-[72px] lg:z-30 lg:translate-x-0 lg:shadow-xl ${desktopChannelSidebarHovered ? 'lg:w-[320px] xl:w-[350px]' : 'lg:w-[72px]'} ${mobileChannelSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        className={`fixed bottom-0 left-0 top-20 z-[120] flex w-[min(88vw,350px)] shrink-0 flex-col border-r border-slate-200 bg-white shadow-2xl transition-[width,transform] duration-300 dark:border-white/10 dark:bg-slate-900 lg:absolute lg:inset-y-0 lg:left-[72px] lg:z-30 lg:translate-x-0 lg:shadow-xl ${desktopChannelSidebarHovered ? 'lg:w-[320px] xl:w-[350px]' : 'lg:w-[72px]'} ${mobileChannelSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Desktop compact channel navigation */}
         <div className={`hidden flex-col items-center gap-2 overflow-y-auto py-3 ${
           desktopChannelSidebarHovered ? 'lg:hidden' : 'lg:flex'

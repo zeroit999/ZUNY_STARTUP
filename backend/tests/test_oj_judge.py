@@ -264,7 +264,6 @@ class OJLanguageTest(unittest.TestCase):
         for language_name in (
             "CPP23",
             "PYTHON314",
-            "JAVA21",
         ):
             with self.subTest(
                 language=language_name

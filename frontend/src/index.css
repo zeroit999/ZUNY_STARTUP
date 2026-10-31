@@ -530,3 +530,20 @@ button:disabled {
   min-height: 100vh;
   background: transparent;
 }
+
+/* Keep the OJ detail page's outer scrollbar hidden while preserving inner scrolling. */
+html.zuny-oj-hide-page-scrollbar,
+body.zuny-oj-hide-page-scrollbar,
+body.zuny-oj-hide-page-scrollbar #root {
+  overflow: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html.zuny-oj-hide-page-scrollbar::-webkit-scrollbar,
+body.zuny-oj-hide-page-scrollbar::-webkit-scrollbar,
+body.zuny-oj-hide-page-scrollbar #root::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
