@@ -477,15 +477,13 @@ function App() {
 
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <AppContent
-          darkMode={darkMode}
-          onToggleDarkMode={() => setDarkMode((prev) => !prev)}
-        />
-
-        <RouteAwareChatbot />
-
-        <Toaster position="top-right" toastOptions={toastOptions} />
+      <BrowserRouter basename="/ZUNY_STARTUP">
+      <AppContent
+      darkMode={darkMode}
+      onToggleDarkMode={() => setDarkMode((prev) => !prev)}
+      />
+      <RouteAwareChatbot />
+      <Toaster position="top-right" toastOptions={toastOptions} />
       </BrowserRouter>
     </AuthProvider>
   );
