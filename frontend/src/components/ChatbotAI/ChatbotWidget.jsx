@@ -203,10 +203,11 @@ export default function ChatbotWidget() {
   const isForumRoute = location.pathname.toLowerCase() === '/forum'
 
   const userRole = normalizeAssistantRole(userDetails?.role)
+  
+  const botLogo = isDarkMode
+  ? `${import.meta.env.BASE_URL}logo_chatbot-darkmode.png`
+  : `${import.meta.env.BASE_URL}logo_chatbot-lightmode.png`
 
-  const botLogo = isDark
-    ? '/logo_chatbot-darkmode.png'
-    : '/logo_chatbot-lightmode.png'
 
   const userName =
     userDetails?.displayName ||
