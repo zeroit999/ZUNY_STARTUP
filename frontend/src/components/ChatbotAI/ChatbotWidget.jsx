@@ -71,8 +71,10 @@ export default function ChatbotWidget() {
   // Vị trí nút chatbot trên mobile, tính theo tọa độ viewport.
   const [mobileBotPosition, setMobileBotPosition] = useState(null)
   const [isMobileBot, setIsMobileBot] = useState(false)
+  const [isDraggingBot, setIsDraggingBot] = useState(false)
   const botDragRef = useRef(null)
   const botSuppressClickRef = useRef(false)
+  const botMoveFrameRef = useRef(null)
 
   useEffect(() => {
     const updateViewport = () => {
@@ -102,7 +104,10 @@ export default function ChatbotWidget() {
 
     updateViewport()
     window.addEventListener('resize', updateViewport)
-    return () => window.removeEventListener('resize', updateViewport)
+    return () => {
+      window.removeEventListener('resize', updateViewport)
+      if (botMoveFrameRef.current) cancelAnimationFrame(botMoveFrameRef.current)
+    }
   }, [])
 
   const handleBotPointerDown = (event) => {
@@ -132,13 +137,20 @@ export default function ChatbotWidget() {
 
     drag.dragging = true
     botSuppressClickRef.current = true
+    setIsDraggingBot(true)
 
     const size = 56
     const margin = 12
 
-    setMobileBotPosition({
-      x: Math.max(margin, Math.min(drag.originX + dx * 1.25, window.innerWidth - size - margin)),
-      y: Math.max(margin, Math.min(drag.originY + dy * 1.25, window.innerHeight - size - margin)),
+    const nextPosition = {
+      x: Math.max(margin, Math.min(drag.originX + dx * 1.35, window.innerWidth - size - margin)),
+      y: Math.max(margin, Math.min(drag.originY + dy * 1.35, window.innerHeight - size - margin)),
+    }
+
+    if (botMoveFrameRef.current) cancelAnimationFrame(botMoveFrameRef.current)
+    botMoveFrameRef.current = requestAnimationFrame(() => {
+      setMobileBotPosition(nextPosition)
+      botMoveFrameRef.current = null
     })
   }
 
@@ -147,6 +159,21 @@ export default function ChatbotWidget() {
     if (!drag || drag.pointerId !== event.pointerId) return
 
     botDragRef.current = null
+    setIsDraggingBot(false)
+
+    if (botMoveFrameRef.current) {
+      cancelAnimationFrame(botMoveFrameRef.current)
+      botMoveFrameRef.current = null
+    }
+
+    if (isMobileBot && mobileBotPosition) {
+      const size = 56
+      const margin = 12
+      const edgeX = mobileBotPosition.x + size / 2 < window.innerWidth / 2
+        ? margin
+        : window.innerWidth - size - margin
+      setMobileBotPosition((position) => position ? { ...position, x: edgeX } : position)
+    }
 
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
@@ -173,6 +200,7 @@ export default function ChatbotWidget() {
     () => getPageAssistantProfile(location.pathname),
     [location.pathname],
   )
+  const isForumRoute = location.pathname.toLowerCase() === '/forum'
 
   const userRole = normalizeAssistantRole(userDetails?.role)
 
@@ -409,7 +437,7 @@ export default function ChatbotWidget() {
   )
 
   return (
-    <div className="pointer-events-none fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
+    <div className={`pointer-events-none fixed right-6 z-[9999] flex flex-col items-end ${isForumRoute ? 'bottom-24' : 'bottom-6'}`}>
       {open && (
         <div
           role="dialog"
@@ -685,7 +713,9 @@ export default function ChatbotWidget() {
             bottom: 'auto',
             touchAction: 'none',
           } : undefined}
-          className={`pointer-events-auto flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border shadow-xl transition-all duration-500 hover:scale-105 ${
+          className={`pointer-events-auto flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border shadow-xl ${
+            isDraggingBot ? 'cursor-grabbing' : 'cursor-grab transition-all duration-300 hover:scale-105'
+          } ${
             isDark
               ? 'border-violet-400/40 bg-[#080808] shadow-violet-500/30'
               : 'border-cyan-200 bg-white shadow-cyan-500/30'

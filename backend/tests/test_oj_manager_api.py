@@ -97,10 +97,49 @@ class OJManagerAPITest(unittest.TestCase):
         ])
         db.session.commit()
 
+
+        cls.draft_problem = OJProblem(
+            code="DRF" + uuid4().hex[:8].upper(),
+            title="Manager Draft Test",
+            description="Đề nháp kiểm thử sửa testcase.",
+            difficulty="EASY",
+            category="Test",
+            points=100,
+            time_limit_ms=1000,
+            memory_limit_mb=256,
+            status="DRAFT",
+            created_by=cls.info_teacher.id,
+            metadata_json={},
+        )
+        db.session.add(cls.draft_problem)
+        db.session.flush()
+
+        cls.draft_hidden = OJTestCase(
+            problem_id=cls.draft_problem.id,
+            position=2,
+            input_data="100 200\\n",
+            expected_output="300\\n",
+            is_sample=False,
+            points=80,
+        )
+        db.session.add(cls.draft_hidden)
+        db.session.commit()
+
         cls.client = cls.app.test_client()
 
     @classmethod
     def tearDownClass(cls):
+        db.session.execute(
+            db.delete(OJTestCase).where(
+                OJTestCase.problem_id == cls.draft_problem.id
+            )
+        )
+        db.session.execute(
+            db.delete(OJProblem).where(
+                OJProblem.id == cls.draft_problem.id
+            )
+        )
+
         db.session.execute(
             db.delete(OJTestCase).where(
                 OJTestCase.problem_id
@@ -143,7 +182,7 @@ class OJManagerAPITest(unittest.TestCase):
 
     def test_01_public_detail_never_leaks_hidden(self):
         response = self.client.get(
-            f"/api/oj/problems/{self.code}",
+            f"/api/oj/problems/{self.problem.id}",
             headers=self.headers(
                 self.student
             ),
@@ -182,7 +221,7 @@ class OJManagerAPITest(unittest.TestCase):
 
     def test_02_student_cannot_read_manager_detail(self):
         response = self.client.get(
-            f"/api/oj/manage/problems/{self.code}",
+            f"/api/oj/manage/problems/{self.problem.id}",
             headers=self.headers(
                 self.student
             ),
@@ -195,7 +234,7 @@ class OJManagerAPITest(unittest.TestCase):
 
     def test_03_math_teacher_cannot_read_manager_detail(self):
         response = self.client.get(
-            f"/api/oj/manage/problems/{self.code}",
+            f"/api/oj/manage/problems/{self.problem.id}",
             headers=self.headers(
                 self.math_teacher
             ),
@@ -208,7 +247,7 @@ class OJManagerAPITest(unittest.TestCase):
 
     def test_04_info_teacher_can_read_hidden_testcase(self):
         response = self.client.get(
-            f"/api/oj/manage/problems/{self.code}",
+            f"/api/oj/manage/problems/{self.problem.id}",
             headers=self.headers(
                 self.info_teacher
             ),
@@ -248,8 +287,8 @@ class OJManagerAPITest(unittest.TestCase):
         response = self.client.put(
             (
                 f"/api/oj/manage/problems/"
-                f"{self.code}/testcases/"
-                f"{self.hidden.id}"
+                f"{self.draft_problem.id}/testcases/"
+                f"{self.draft_hidden.id}"
             ),
             json={
                 "input": "7 8\n",
@@ -272,7 +311,7 @@ class OJManagerAPITest(unittest.TestCase):
 
         testcase = db.session.get(
             OJTestCase,
-            self.hidden.id,
+            self.draft_hidden.id,
         )
 
         self.assertEqual(
@@ -312,7 +351,7 @@ class OJManagerAPITest(unittest.TestCase):
             response = self.client.put(
                 (
                     f"/api/oj/manage/problems/"
-                    f"{other.code}/testcases/"
+                    f"{other.id}/testcases/"
                     f"{self.hidden.id}"
                 ),
                 json={
@@ -333,7 +372,7 @@ class OJManagerAPITest(unittest.TestCase):
 
     def test_07_manager_can_delete_testcase(self):
         testcase = OJTestCase(
-            problem_id=self.problem.id,
+            problem_id=self.draft_problem.id,
             position=99,
             input_data="delete\n",
             expected_output="delete\n",
@@ -349,7 +388,7 @@ class OJManagerAPITest(unittest.TestCase):
         response = self.client.delete(
             (
                 f"/api/oj/manage/problems/"
-                f"{self.code}/testcases/"
+                f"{self.draft_problem.id}/testcases/"
                 f"{testcase_id}"
             ),
             headers=self.headers(
@@ -367,6 +406,32 @@ class OJManagerAPITest(unittest.TestCase):
                 OJTestCase,
                 testcase_id,
             )
+        )
+
+
+    def test_08_published_testcase_cannot_be_updated_directly(self):
+        original_input = self.hidden.input_data
+        response = self.client.put(
+            f"/api/oj/manage/problems/{self.problem.id}/testcases/{self.hidden.id}",
+            json={"input": "FORBIDDEN"},
+            headers=self.headers(self.info_teacher),
+        )
+        self.assertEqual(response.status_code, 403)
+        db.session.expire_all()
+        self.assertEqual(
+            db.session.get(OJTestCase, self.hidden.id).input_data,
+            original_input,
+        )
+
+    def test_09_published_testcase_cannot_be_deleted_directly(self):
+        response = self.client.delete(
+            f"/api/oj/manage/problems/{self.problem.id}/testcases/{self.hidden.id}",
+            headers=self.headers(self.info_teacher),
+        )
+        self.assertEqual(response.status_code, 403)
+        db.session.expire_all()
+        self.assertIsNotNone(
+            db.session.get(OJTestCase, self.hidden.id)
         )
 
 

@@ -13,7 +13,7 @@ function AppLayout({
   lockPageScroll = false,
 }) {
   return (
-    <div className="min-h-screen text-slate-900 transition-colors dark:text-slate-100">
+    <div className="flow-root min-h-screen text-slate-900 transition-colors dark:text-slate-100">
       <AnimatedBackground />
 
       {showNavbar && (

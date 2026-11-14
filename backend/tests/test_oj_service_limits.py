@@ -117,16 +117,10 @@ class OJServiceTimeLimitTest(unittest.TestCase):
                 payload,
             )
 
-        problem = (
-            db.session.execute(
-                db.select(OJProblem).where(
-                    OJProblem.code
-                    == payload["code"]
-                )
-            )
-            .scalars()
-            .one()
-        )
+        self.assertTrue(result["success"])
+        problem_id = result["problem"]["id"]
+        problem = db.session.get(OJProblem, problem_id)
+        self.assertIsNotNone(problem)
 
         self.remember_problem(problem)
 
@@ -159,16 +153,10 @@ class OJServiceTimeLimitTest(unittest.TestCase):
                 payload,
             )
 
-        problem = (
-            db.session.execute(
-                db.select(OJProblem).where(
-                    OJProblem.code
-                    == payload["code"]
-                )
-            )
-            .scalars()
-            .one()
-        )
+        self.assertTrue(result["success"])
+        problem_id = result["problem"]["id"]
+        problem = db.session.get(OJProblem, problem_id)
+        self.assertIsNotNone(problem)
 
         self.remember_problem(problem)
 
@@ -244,7 +232,7 @@ class OJServiceTimeLimitTest(unittest.TestCase):
         with self.manager_patch():
             result = update_problem(
                 {"user_id": self.user.id},
-                problem.code,
+                problem.id,
                 {
                     "timeLimitMs": 30_000,
                 },
@@ -269,7 +257,7 @@ class OJServiceTimeLimitTest(unittest.TestCase):
             with self.assertRaises(OJError) as ctx:
                 update_problem(
                     {"user_id": self.user.id},
-                    problem.code,
+                    problem.id,
                     {
                         "timeLimitMs": 30_001,
                     },
@@ -301,13 +289,13 @@ class OJServiceTimeLimitTest(unittest.TestCase):
         )
 
         problem_id = problem.id
-        problem_code = problem.code
+        problem_id_for_update = problem.id
 
         with self.manager_patch():
             with self.assertRaises(OJError) as ctx:
                 update_problem(
                     {"user_id": self.user.id},
-                    problem_code,
+                    problem_id_for_update,
                     {
                         "title":
                             "Tên KHÔNG được lưu",

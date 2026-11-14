@@ -18,9 +18,7 @@ const ChatbotWidget = lazy(() => import('./components/ChatbotAI/ChatbotWidget.js
 
 const Home = lazy(() => import('./pages/Home.jsx'))
 const Exams = lazy(() => import('./pages/exam/Exams.jsx'))
-const OJHome = lazy(() => import('./pages/oj/OJHome.jsx'))
-const ProblemDetail = lazy(() => import('./pages/oj/ProblemDetail.jsx'))
-const OJManage = lazy(() => import('./pages/oj/OJManage.jsx'))
+const OJPortalV2 = lazy(() => import('./pages/oj-v2/OJPortal.jsx'))
 const ExamRoom = lazy(() => import('./pages/exam/ExamRoom.jsx'))
 const ResultPage = lazy(() => import('./pages/exam/ResultPage.jsx'))
 const Forum = lazy(() => import('./pages/forum/Forum.jsx'))
@@ -160,6 +158,7 @@ function AppContent({ darkMode, onToggleDarkMode }) {
   const isELearningLibraryRoute = normalizedPath === '/e-learning';
   const isELearningDetailRoute = normalizedPath.startsWith('/e-learning/');
   const isForgotPasswordRoute = normalizedPath === '/forgot-password';
+  const isOjRoute = normalizedPath === '/oj' || normalizedPath.startsWith('/oj/');
   const isAuthRoute =
     location.pathname === '/login' ||
     location.pathname === '/register' ||
@@ -169,6 +168,17 @@ function AppContent({ darkMode, onToggleDarkMode }) {
 
   const forumChannelOpen =
     isForumRoute && isForumChannelOpen;
+
+  useEffect(() => {
+    if (!isForumRoute) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isForumRoute]);
 
   const isExamRoomRoute =
     location.pathname.startsWith('/exam/') &&
@@ -244,9 +254,7 @@ function AppContent({ darkMode, onToggleDarkMode }) {
         onToggleDarkMode={onToggleDarkMode}
         mainClassName={
           isForumRoute
-            ? forumChannelOpen
-              ? 'h-[calc(100dvh-5rem)] overflow-hidden pt-20'
-              : 'pt-24'
+            ? 'mt-20 h-[calc(100dvh-5rem)] overflow-hidden'
             : isAuthRoute ||
               isForgotPasswordRoute ||
               isExamRoomRoute ||
@@ -254,18 +262,20 @@ function AppContent({ darkMode, onToggleDarkMode }) {
               isELearningLibraryRoute ||
               isELearningDetailRoute ||
               isLearningPageRoute ||
-              isSettingsRoute
+              isSettingsRoute ||
+              isOjRoute
               ? 'pt-0'
               : 'pt-20'
         }
         showFooter={normalizedPath === '/'}
         showNavbar={!isAuthRoute && !isExamRoomRoute}
         disableNavbarHover={isHomeRoute}
-        lockPageScroll={forumChannelOpen}
+        lockPageScroll={isForumRoute || forumChannelOpen}
       >
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
+            className={isForumRoute ? 'h-full' : undefined}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
@@ -347,28 +357,10 @@ function AppContent({ darkMode, onToggleDarkMode }) {
               />
 
               <Route
-                path="/oj"
+                path="/oj/*"
                 element={
                   <ProtectedRoute>
-                    <OJHome />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/oj/manage"
-                element={
-                  <ProtectedRoute>
-                    <OJManage />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/oj/problem/:id"
-                element={
-                  <ProtectedRoute>
-                    <ProblemDetail />
+                    <OJPortalV2 />
                   </ProtectedRoute>
                 }
               />

@@ -26,8 +26,11 @@ from .exam import (
 from .chat import ChatConversation
 
 from .oj import (
+    OJContest,
+    OJContestProblem,
     OJProblem,
     OJTestCase,
+    OJProblemReview,
     OJSubmission,
     OJSubmissionResult,
 )
@@ -95,7 +98,10 @@ __all__ = [
     "ChatConversation",
 
     "OJProblem",
+    "OJContest",
+    "OJContestProblem",
     "OJTestCase",
+    "OJProblemReview",
     "OJSubmission",
     "OJSubmissionResult",
 

@@ -19,6 +19,12 @@ const listProblems = async () => {
   return unwrap(response)
 }
 
+const listContests = async () => unwrap(await apiClient.get('/oj/contests'))
+
+const createContest = async (payload) => unwrap(await apiClient.post('/oj/contests', payload))
+
+const updateContest = async (contestId, payload) => unwrap(await apiClient.put(`/oj/contests/${contestId}`, payload))
+
 
 const getProblem = async (problemId) => {
   const response = await apiClient.get(
@@ -59,6 +65,16 @@ const addTestcase = async (
   const response = await apiClient.post(
     `/oj/problems/${normalizeProblemId(problemId)}/testcases`,
     payload,
+  )
+
+  return unwrap(response)
+}
+
+
+const replaceTestcases = async (problemId, testcases) => {
+  const response = await apiClient.put(
+    `/oj/manage/problems/${normalizeProblemId(problemId)}/testcases`,
+    { testcases },
   )
 
   return unwrap(response)
@@ -155,12 +171,23 @@ const analyzeSubmission = async (
 }
 
 
+const submitReview = async (problemId, payload) => unwrap(await apiClient.post(`/oj/manage/problems/${normalizeProblemId(problemId)}/review`, payload))
+const listReviews = async () => unwrap(await apiClient.get('/oj/manage/reviews'))
+const decideReview = async (reviewId, payload) => unwrap(await apiClient.post(`/oj/manage/reviews/${reviewId}/decision`, payload))
+
 const ojApi = {
+  submitReview,
+  listReviews,
+  decideReview,
   listProblems,
+  listContests,
+  createContest,
+  updateContest,
   getProblem,
   createProblem,
   updateProblem,
   addTestcase,
+  replaceTestcases,
   getManagerProblem,
   updateTestcase,
   deleteTestcase,
