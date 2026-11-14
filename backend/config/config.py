@@ -136,6 +136,13 @@ class Config:
         "",
     )
 
+    SQLALCHEMY_ENGINE_OPTIONS = {
+    "connect_args": {
+        "sslmode": "require"
+    },
+    "pool_pre_ping": True,
+    }
+
     @property
     def is_development(self):
         return (
